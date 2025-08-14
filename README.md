@@ -12,30 +12,77 @@ This repository contains a suite of open-source tools designed to enhance Sanity
 - **Features**: Smart search, click-to-add, bulk operations, dynamic sorting
 - **Status**: Live on NPM v1.0.1
 
-### 2. **Font Management System** 🚧 In Development
-- **Purpose**: Specialized tools for font foundries and typography management
-- **Features**: Font metadata management, licensing workflows, specimen generation
-- **Status**: Extracting from production code
+### 2. **Bulk Data Operations** 🚧 In Development
+- **Repository**: [sanity-bulk-data-operations](https://github.com/quitequinn/sanity-bulk-data-operations)
+- **Purpose**: Bulk operations for Sanity data management
+- **Features**: Mass updates, batch processing, data transformation
+- **Status**: Development phase
 
-### 3. **Advanced Object Array** 🚧 In Development
-- **Purpose**: Enhanced object array management with search and filtering
-- **Features**: Complex object editing, validation, bulk operations
-- **Status**: Planning phase
+### 3. **Convert IDs to Slugs** 🚧 In Development
+- **Repository**: [sanity-convert-ids-to-slugs](https://github.com/quitequinn/sanity-convert-ids-to-slugs)
+- **Purpose**: Convert document IDs to human-readable slugs
+- **Features**: Automated slug generation, batch conversion, validation
+- **Status**: Development phase
 
-### 4. **E-commerce Extensions** 🚧 In Development
-- **Purpose**: Product management and cart components for Sanity
-- **Features**: Product variants, pricing, inventory management
-- **Status**: Extracting from production code
+### 4. **Convert References** 🚧 In Development
+- **Repository**: [sanity-convert-references](https://github.com/quitequinn/sanity-convert-references)
+- **Purpose**: Convert and migrate reference relationships
+- **Features**: Reference mapping, relationship updates, data integrity
+- **Status**: Development phase
 
-### 5. **UI Component Library** 📋 Planned
-- **Purpose**: Shared UI components for consistent Sanity Studio experiences
-- **Features**: Reusable components, theming, accessibility
-- **Status**: Planning phase
+### 5. **Delete Unused Assets** 🚧 In Development
+- **Repository**: [sanity-delete-unused-assets](https://github.com/quitequinn/sanity-delete-unused-assets)
+- **Purpose**: Clean up unused assets from Sanity projects
+- **Features**: Asset scanning, usage detection, safe deletion
+- **Status**: Development phase
 
-### 6. **Automation Toolkit** 📋 Planned
-- **Purpose**: Content migration and bulk operations
-- **Features**: Data migration, bulk updates, maintenance scripts
-- **Status**: Planning phase
+### 6. **Duplicate and Rename** 🚧 In Development
+- **Repository**: [sanity-duplicate-and-rename](https://github.com/quitequinn/sanity-duplicate-and-rename)
+- **Purpose**: Duplicate documents with intelligent renaming
+- **Features**: Smart duplication, naming patterns, relationship handling
+- **Status**: Development phase
+
+### 7. **Enhanced Commerce** 🚧 In Development
+- **Repository**: [sanity-enhanced-commerce](https://github.com/quitequinn/sanity-enhanced-commerce)
+- **Purpose**: Advanced e-commerce components for Sanity
+- **Features**: Product variants, pricing, inventory management, cart components
+- **Status**: Development phase
+
+### 8. **Export Data** 🚧 In Development
+- **Repository**: [sanity-export-data](https://github.com/quitequinn/sanity-export-data)
+- **Purpose**: Export Sanity data in various formats
+- **Features**: Multiple export formats, filtering, scheduling
+- **Status**: Development phase
+
+### 9. **Font Data Extractor** 🚧 In Development
+- **Repository**: [sanity-font-data-extractor](https://github.com/quitequinn/sanity-font-data-extractor)
+- **Purpose**: Extract metadata from font files
+- **Features**: Font analysis, metadata extraction, specimen generation
+- **Status**: Development phase
+
+### 10. **Font Management Suite** 🚧 In Development
+- **Repository**: [sanity-font-management-suite](https://github.com/quitequinn/sanity-font-management-suite)
+- **Purpose**: Comprehensive font management for foundries
+- **Features**: Font metadata, licensing workflows, specimen generation
+- **Status**: Development phase
+
+### 11. **Renewals Authorization** 🚧 In Development
+- **Repository**: [sanity-renewals-authorization](https://github.com/quitequinn/sanity-renewals-authorization)
+- **Purpose**: License renewal and authorization system
+- **Features**: License tracking, renewal workflows, authorization management
+- **Status**: Development phase
+
+### 12. **Search and Delete** 🚧 In Development
+- **Repository**: [sanity-search-and-delete](https://github.com/quitequinn/sanity-search-and-delete)
+- **Purpose**: Advanced search and deletion capabilities
+- **Features**: Complex queries, batch deletion, safety checks
+- **Status**: Development phase
+
+### 13. **Studio Utilities** 🚧 In Development
+- **Repository**: [sanity-studio-utilities](https://github.com/quitequinn/sanity-studio-utilities)
+- **Purpose**: General utilities for Sanity Studio enhancement
+- **Features**: UI helpers, workflow improvements, developer tools
+- **Status**: Development phase
 
 ## 🎯 **Mission**
 
