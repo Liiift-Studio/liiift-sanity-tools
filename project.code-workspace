@@ -1,0 +1,106 @@
+{
+	"folders": [
+		{
+			"name": "Liiift Sanity Tools",
+			"path": "."
+		},
+		{
+			"name": "Advanced Reference Array",
+			"path": "./sanity-advanced-reference-array"
+		}
+	],
+	"settings": {
+		"typescript.preferences.importModuleSpecifier": "relative",
+		"typescript.suggest.autoImports": true,
+		"editor.formatOnSave": true,
+		"editor.codeActionsOnSave": {
+			"source.fixAll.eslint": "explicit"
+		},
+		"files.exclude": {
+			"**/node_modules": true,
+			"**/dist": false,
+			"**/.git": false
+		},
+		"search.exclude": {
+			"**/node_modules": true,
+			"**/dist": true
+		},
+		"git.ignoreLimitWarning": true
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-vscode.vscode-typescript-next",
+			"dbaeumer.vscode-eslint",
+			"esbenp.prettier-vscode",
+			"bradlc.vscode-tailwindcss",
+			"ms-vscode.vscode-json"
+		]
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "Build All Tools",
+				"dependsOrder": "sequence",
+				"dependsOn": [
+					"Build Advanced Reference Array"
+				],
+				"group": {
+					"kind": "build",
+					"isDefault": true
+				}
+			},
+			{
+				"label": "Build Advanced Reference Array",
+				"type": "shell",
+				"command": "npm run build",
+				"options": {
+					"cwd": "${workspaceFolder}/sanity-advanced-reference-array"
+				},
+				"group": "build",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "shared",
+					"showReuseMessage": true,
+					"clear": false
+				},
+				"problemMatcher": ["$tsc"]
+			},
+			{
+				"label": "Dev Advanced Reference Array",
+				"type": "shell",
+				"command": "npm run dev",
+				"options": {
+					"cwd": "${workspaceFolder}/sanity-advanced-reference-array"
+				},
+				"group": "build",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "dedicated",
+					"showReuseMessage": true,
+					"clear": false
+				},
+				"problemMatcher": ["$tsc-watch"]
+			},
+			{
+				"label": "Install Dependencies - Advanced Reference Array",
+				"type": "shell",
+				"command": "npm install",
+				"options": {
+					"cwd": "${workspaceFolder}/sanity-advanced-reference-array"
+				},
+				"group": "build",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "shared"
+				}
+			}
+		]
+	}
+}
