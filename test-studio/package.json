@@ -1,0 +1,35 @@
+{
+   "name": "liiift-sanity-tools-test-studio",
+   "version": "1.0.0",
+   "description": "Integrated test studio for all 14 Liiift Sanity Tools",
+   "scripts": {
+      "dev": "sanity dev",
+      "build": "sanity build",
+      "deploy": "sanity deploy",
+      "start": "sanity start"
+   },
+   "dependencies": {
+      "@sanity/ui": "^2.0.0",
+      "@sanity/vision": "^3.0.0",
+      "react": "^18.0.0",
+      "react-dom": "^18.0.0",
+      "sanity": "^3.0.0",
+      "styled-components": "^6.0.0",
+      "date-fns": "^2.30.0"
+   },
+   "devDependencies": {
+      "@types/react": "^18.2.0",
+      "@types/react-dom": "^18.2.0",
+      "typescript": "^5.0.0"
+   },
+   "keywords": [
+      "sanity",
+      "studio",
+      "testing",
+      "tools",
+      "plugins",
+      "development"
+   ],
+   "author": "Liiift Studio",
+   "license": "MIT"
+}
