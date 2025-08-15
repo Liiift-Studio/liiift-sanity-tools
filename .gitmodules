@@ -1,26 +1,39 @@
 [submodule "sanity-advanced-reference-array"]
 	path = sanity-advanced-reference-array
+	url = https://github.com/quitequinn/sanity-advanced-reference-array.git
 [submodule "sanity-bulk-data-operations"]
 	path = sanity-bulk-data-operations
+	url = https://github.com/quitequinn/sanity-bulk-data-operations.git
 [submodule "sanity-convert-ids-to-slugs"]
 	path = sanity-convert-ids-to-slugs
+	url = https://github.com/quitequinn/sanity-convert-ids-to-slugs.git
 [submodule "sanity-convert-references"]
 	path = sanity-convert-references
+	url = https://github.com/quitequinn/sanity-convert-references.git
 [submodule "sanity-delete-unused-assets"]
 	path = sanity-delete-unused-assets
+	url = https://github.com/quitequinn/sanity-delete-unused-assets.git
 [submodule "sanity-duplicate-and-rename"]
 	path = sanity-duplicate-and-rename
+	url = https://github.com/quitequinn/sanity-duplicate-and-rename.git
 [submodule "sanity-enhanced-commerce"]
 	path = sanity-enhanced-commerce
+	url = https://github.com/quitequinn/sanity-enhanced-commerce.git
 [submodule "sanity-export-data"]
 	path = sanity-export-data
+	url = https://github.com/quitequinn/sanity-export-data.git
 [submodule "sanity-font-data-extractor"]
 	path = sanity-font-data-extractor
+	url = https://github.com/quitequinn/sanity-font-data-extractor.git
 [submodule "sanity-font-management-suite"]
 	path = sanity-font-management-suite
+	url = https://github.com/quitequinn/sanity-font-management-suite.git
 [submodule "sanity-renewals-authorization"]
 	path = sanity-renewals-authorization
+	url = https://github.com/quitequinn/sanity-renewals-authorization.git
 [submodule "sanity-search-and-delete"]
 	path = sanity-search-and-delete
+	url = https://github.com/quitequinn/sanity-search-and-delete.git
 [submodule "sanity-studio-utilities"]
 	path = sanity-studio-utilities
+	url = https://github.com/quitequinn/sanity-studio-utilities.git
