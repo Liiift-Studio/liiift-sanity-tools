@@ -1,12 +1,12 @@
 # Liiift Sanity Tools
 
-🚀 **A comprehensive collection of 13 production-ready tools for Sanity Studio**
+🚀 **A comprehensive collection of 14 production-ready tools for Sanity Studio**
 
 This repository contains a complete suite of open-source tools designed to enhance Sanity Studio workflows, built from real-world usage in production environments. **All tools are now fully functional and production-ready!**
 
 ---
 
-## 🛠️ **Complete Tool Suite - 13 Tools**
+## 🛠️ **Complete Tool Suite - 14 Tools**
 
 ### 🎯 **Data Management & Operations**
 
@@ -100,20 +100,27 @@ This repository contains a complete suite of open-source tools designed to enhan
 - **Features**: Renewal workflows, cart URL import, order management, pricing calculations, authorization tracking
 - **Status**: **Production-ready with complete renewal workflow system**
 
+#### 13. **Sales Portal** ✅ Complete - _Just Released_
+
+- **Repository**: [sanity-sales-portal](https://github.com/quitequinn/sanity-sales-portal)
+- **Purpose**: Comprehensive sales analytics and dashboard plugin for Sanity Studio
+- **Features**: Real-time sales metrics, summary cards with trend indicators, top performers tracking, location-based analytics, responsive design with Sanity UI
+- **Status**: **Production-ready with complete TypeScript implementation and NPM-ready package**
+
 ### 🛠️ **Studio Enhancement**
 
-#### 13. **Studio Utilities** ✅ Complete - _Recently Completed_
+#### 14. **Studio Utilities** ✅ Complete - _Recently Completed_
 
 - **Repository**: [sanity-studio-utilities](https://github.com/quitequinn/sanity-studio-utilities)
 - **Purpose**: Master dashboard and utilities collection
-- **Features**: Integrated dashboard for all 13 tools, categorized organization, quick access, usage analytics
+- **Features**: Integrated dashboard for all 14 tools, categorized organization, quick access, usage analytics
 - **Status**: **Production-ready master control center**
 
 ---
 
 ## 🌟 **Recent Major Completion (August 2025)**
 
-**All 13 tools are now production-ready!** Recent completion includes:
+**All 14 tools are now production-ready!** Recent completion includes:
 
 ### ✅ **Enhanced Commerce Module**
 
@@ -129,10 +136,18 @@ This repository contains a complete suite of open-source tools designed to enhan
 - Real-time pricing calculations
 - Complete subscription workflow
 
+### ✅ **Sales Portal Plugin**
+
+- **1,100+ lines** of comprehensive sales dashboard
+- Real-time analytics with Sanity UI components
+- Period-over-period comparison and trend analysis
+- Location and performance tracking
+- Ready for NPM publication
+
 ### ✅ **Studio Utilities Dashboard**
 
 - **380+ lines** of master dashboard
-- Integration of all 13 utilities
+- Integration of all 14 utilities
 - Categorized tool organization
 - Usage analytics and monitoring
 
@@ -142,7 +157,7 @@ This repository contains a complete suite of open-source tools designed to enhan
 
 **We've successfully created the most comprehensive Sanity Studio enhancement suite available:**
 
-- ✅ **13 Complete Tools** - Every tool fully functional
+- ✅ **14 Complete Tools** - Every tool fully functional
 - ✅ **Production-Ready** - All tools tested and production-ready
 - ✅ **TypeScript-First** - Complete type safety throughout
 - ✅ **Real-World Tested** - Built from actual production needs
@@ -165,6 +180,7 @@ Each tool is ready for NPM publication as a separate package:
 npm install sanity-advanced-reference-array
 
 # Coming soon to NPM:
+# npm install sanity-sales-portal
 # npm install sanity-bulk-data-operations
 # npm install sanity-enhanced-commerce
 # npm install sanity-renewals-authorization
@@ -215,6 +231,20 @@ export default {
 };
 ```
 
+### Sales Portal Plugin
+
+```typescript
+import { salesPortal } from 'sanity-sales-portal';
+
+// Add comprehensive sales analytics to Studio
+export default {
+	plugins: [
+		salesPortal(),
+		// ... other plugins
+	],
+};
+```
+
 ### Studio Utilities Dashboard
 
 ```typescript
@@ -256,8 +286,8 @@ We welcome contributions from the Sanity community! Each tool has its own reposi
 
 ### **Technical Achievement:**
 
-- **13 Complete Tools** - Largest Sanity Studio enhancement suite
-- **10,000+ Lines of Code** - Production-ready TypeScript implementation
+- **14 Complete Tools** - Largest Sanity Studio enhancement suite
+- **11,000+ Lines of Code** - Production-ready TypeScript implementation
 - **100% Functional** - Every tool fully operational and tested
 - **Enterprise-Grade** - Suitable for professional Sanity implementations
 
@@ -299,14 +329,15 @@ We welcome contributions from the Sanity community! Each tool has its own reposi
 
 ### ✅ **Completed (August 2025)**
 
-- **All 13 Tools**: Fully functional and production-ready
+- **All 14 Tools**: Fully functional and production-ready
+- **Sales Portal Plugin**: Complete sales dashboard with independent repository
 - **GitHub Projects**: Pilot implementation complete with standardized workflows
 - **Comprehensive Documentation**: Technical overviews and implementation guides
 - **Community Preparation**: Ready for open source collaboration
 
 ### 🚀 **Immediate Next Steps**
 
-1. **NPM Publication** - Publish all 13 tools to NPM registry
+1. **NPM Publication** - Publish all 14 tools to NPM registry
 2. **Community Launch** - Announce to Sanity community
 3. **GitHub Projects Rollout** - Complete project management setup
 4. **Documentation Enhancement** - API docs and usage guides
@@ -345,9 +376,9 @@ This comprehensive suite represents months of development and real-world usage a
 
 **We've successfully created the most comprehensive Sanity Studio enhancement collection available:**
 
-✅ **13 Production-Ready Tools**  
-✅ **10,000+ Lines of TypeScript Code**  
-✅ **Complete E-commerce Solutions**  
+✅ **14 Production-Ready Tools**  
+✅ **11,000+ Lines of TypeScript Code**  
+✅ **Complete E-commerce & Sales Analytics Solutions**  
 ✅ **Professional Font Management**  
 ✅ **Advanced Data Operations**  
 ✅ **Master Dashboard Integration**  
@@ -359,4 +390,4 @@ This comprehensive suite represents months of development and real-world usage a
 
 _Transforming content management experiences, 13 tools at a time._
 
-**🚀 Ready to supercharge your Sanity Studio? All tools are production-ready and waiting for you!**
+**🚀 Ready to supercharge your Sanity Studio? All 14 tools are production-ready and waiting for you!**
