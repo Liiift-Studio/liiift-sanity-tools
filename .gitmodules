@@ -37,3 +37,6 @@
 [submodule "sanity-studio-utilities"]
 	path = sanity-studio-utilities
 	url = https://github.com/quitequinn/sanity-studio-utilities.git
+[submodule "sanity-sales-portal"]
+	path = sanity-sales-portal
+	url = https://github.com/quitequinn/sanity-sales-portal.git
