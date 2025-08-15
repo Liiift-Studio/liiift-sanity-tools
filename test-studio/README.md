@@ -92,10 +92,30 @@ The studio includes comprehensive test schemas designed to exercise all tool fun
    npm install
    ```
 
-2. **Configure Project**
+2. **Configure Sanity Project** (REQUIRED)
+   - Copy the environment example file:
+     ```bash
+     cp .env.example .env.local
+     ```
+   - Update `.env.local` with your actual Sanity project details:
 
-   - Update `projectId` in `sanity.config.ts`
-   - Set up your Sanity project and dataset
+     ```bash
+     # Get your project ID from https://sanity.io/manage
+     SANITY_STUDIO_PROJECT_ID=your-actual-project-id
+     SANITY_STUDIO_DATASET=production
+     ```
+
+   - Or create a new Sanity project:
+
+     ```bash
+     # Install Sanity CLI if not already installed
+     npm install -g @sanity/cli
+
+     # Create new project
+     sanity init
+
+     # Use the project ID from the init process
+     ```
 
 3. **Start Development Server**
 
@@ -106,6 +126,7 @@ The studio includes comprehensive test schemas designed to exercise all tool fun
 4. **Access Studio**
    - Open browser to `http://localhost:3333`
    - Navigate to Tools menu to access all utilities
+   - **Note**: Studio will not load without proper project configuration
 
 ## 🧪 **Testing Guide**
 
@@ -114,13 +135,11 @@ The studio includes comprehensive test schemas designed to exercise all tool fun
 #### **Data Management Tools**
 
 1. **Advanced Reference Array**:
-
    - Create Reference Test documents
    - Use the enhanced reference array field
    - Test search, bulk operations, and filtering
 
 2. **Bulk Data Operations**:
-
    - Create multiple Bulk Test documents
    - Access Tools → Bulk Data Operations
    - Test mass updates and batch processing
@@ -133,7 +152,6 @@ The studio includes comprehensive test schemas designed to exercise all tool fun
 #### **E-commerce Tools**
 
 1. **Enhanced Commerce**:
-
    - Access Tools → Enhanced Commerce
    - Test cart creation and order management
    - Verify pricing calculations
@@ -148,7 +166,6 @@ The studio includes comprehensive test schemas designed to exercise all tool fun
 #### **Cross-Tool Workflows**
 
 1. **Content Migration**:
-
    - Create reference relationships
    - Use Convert References to migrate
    - Verify with Advanced Reference Array
