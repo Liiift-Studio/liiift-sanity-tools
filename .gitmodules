@@ -1,0 +1,26 @@
+[submodule "sanity-advanced-reference-array"]
+	path = sanity-advanced-reference-array
+[submodule "sanity-bulk-data-operations"]
+	path = sanity-bulk-data-operations
+[submodule "sanity-convert-ids-to-slugs"]
+	path = sanity-convert-ids-to-slugs
+[submodule "sanity-convert-references"]
+	path = sanity-convert-references
+[submodule "sanity-delete-unused-assets"]
+	path = sanity-delete-unused-assets
+[submodule "sanity-duplicate-and-rename"]
+	path = sanity-duplicate-and-rename
+[submodule "sanity-enhanced-commerce"]
+	path = sanity-enhanced-commerce
+[submodule "sanity-export-data"]
+	path = sanity-export-data
+[submodule "sanity-font-data-extractor"]
+	path = sanity-font-data-extractor
+[submodule "sanity-font-management-suite"]
+	path = sanity-font-management-suite
+[submodule "sanity-renewals-authorization"]
+	path = sanity-renewals-authorization
+[submodule "sanity-search-and-delete"]
+	path = sanity-search-and-delete
+[submodule "sanity-studio-utilities"]
+	path = sanity-studio-utilities
