@@ -15,7 +15,7 @@ export default defineConfig({
 	name: 'liiift-tools-test-studio',
 	title: 'Liiift Sanity Tools - Test Studio',
 
-	projectId: process.env.SANITY_STUDIO_PROJECT_ID || 'your-project-id-here',
+	projectId: process.env.SANITY_STUDIO_PROJECT_ID || '6fljbzmb',
 	dataset: process.env.SANITY_STUDIO_DATASET || 'production',
 
 	plugins: [
