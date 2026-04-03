@@ -1,5 +1,20 @@
 # Liiift Sanity Tools — Claude Code Configuration
 
+## Memory Bank (Read Before Every Task)
+
+Before starting any task, read ALL files in `.agent/memory/` in this order:
+
+1. `.agent/memory/projectbrief.md` — project scope, goals, identity
+2. `.agent/memory/productContext.md` — why it exists, user goals
+3. `.agent/memory/systemPatterns.md` — architecture, patterns, component relationships
+4. `.agent/memory/techContext.md` — full tech stack and dependencies
+5. `.agent/memory/activeContext.md` — current work focus, recent changes, next steps
+6. `.agent/memory/progress.md` — what works, what's left, known issues
+
+After any significant changes, update `.agent/memory/activeContext.md` and `.agent/memory/progress.md`.
+
+---
+
 ## Overview
 
 This is a **monorepo of 14 Sanity plugins/tools**. Each tool lives in its own subdirectory with its own `package.json`.
