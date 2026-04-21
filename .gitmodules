@@ -43,3 +43,6 @@
 [submodule "deploy-vercel-from-sanity"]
 	path = deploy-vercel-from-sanity
 	url = https://github.com/Liiift-Studio/Deploy-Vercel-from-Sanity.git
+[submodule "sanity-type-foundry-utilities"]
+	path = sanity-type-foundry-utilities
+	url = https://github.com/Liiift-Studio/sanity-type-foundry-utilities.git
