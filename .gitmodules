@@ -40,3 +40,6 @@
 [submodule "sanity-sales-portal"]
 	path = sanity-sales-portal
 	url = https://github.com/quitequinn/sanity-sales-portal.git
+[submodule "deploy-vercel-from-sanity"]
+	path = deploy-vercel-from-sanity
+	url = https://github.com/Liiift-Studio/Deploy-Vercel-from-Sanity.git
