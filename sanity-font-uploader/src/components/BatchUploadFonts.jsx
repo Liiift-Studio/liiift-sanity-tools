@@ -181,7 +181,7 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 	/** Bulk-sets the same price on every font in this typeface. */
 	const handleChangeFontPrice = useCallback(async () => {
 		setStatus('Updating font prices...');
-		setReady('prices');
+		setReady('price');
 		setError(false);
 
 		await updateFontPrices({ client, title, slug, inputPrice, doc_id, setStatus, setError });

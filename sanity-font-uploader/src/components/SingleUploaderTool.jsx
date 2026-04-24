@@ -262,6 +262,7 @@ export const SingleUploaderTool = (props) => {
 					fileName: filename.replace('.woff2', ''),
 					variableFont: doc_variableFont,
 					weight: doc_weight,
+					style: doc_style || 'Normal',
 					client: client,
 				});
 				setMessage(doc_title + '.css generated');
@@ -341,7 +342,7 @@ export const SingleUploaderTool = (props) => {
 
 			for (const refKey of Object.keys(fileInput)) {
 				if (refKey === 'documentInfo') continue;
-				const asset = value[refKey]?.asset?._ref;
+				const asset = fileInput[refKey]?.asset?._ref;
 				if (!asset) continue;
 				try { await client.delete(asset); } catch (e) { console.error('Error deleting asset:', e.message); }
 			}
@@ -383,14 +384,14 @@ export const SingleUploaderTool = (props) => {
 				<Flex gap={2} align="center">
 					{status === 'ready' && (
 						<>
-							{buildSource && value?.[buildSource] && (
-								<Button mode="default" tone="primary" onClick={() => handleGenerateFontFile(format, value[buildSource])} text="Build" />
+							{buildSource && fileInput?.[buildSource] && (
+								<Button mode="default" tone="primary" onClick={() => handleGenerateFontFile(format, fileInput[buildSource])} text="Build" />
 							)}
 							<Button as="label" mode="ghost" tone="primary" style={{ cursor: 'pointer' }}>
 								<Text>Upload</Text>
 								<input ref={ref} type="file" placeholder="Upload file" hidden onChange={(e) => handleUpload(e, format)} />
 							</Button>
-							{value?.[format] && (
+							{fileInput?.[format] && (
 								<Button mode="ghost" tone="critical" onClick={() => handleDelete(format)} text="×" />
 							)}
 						</>
@@ -408,12 +409,12 @@ export const SingleUploaderTool = (props) => {
 
 			{renderFontSection('ttf')}
 
-			{status === 'ready' && value?.ttf && (
+			{status === 'ready' && fileInput?.ttf && (
 				<Box>
 					<Button
 						mode="default"
 						tone="primary"
-						onClick={() => handleGenerateFontFile('all', value.ttf)}
+						onClick={() => handleGenerateFontFile('all', fileInput.ttf)}
 						text="Regenerate Files/Data from TTF"
 						style={{ width: '100%' }}
 					/>

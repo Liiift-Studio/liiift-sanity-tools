@@ -8,7 +8,7 @@ import { useSanityClient } from '../hooks/useSanityClient';
 import { useFormValue } from 'sanity';
 import { nanoid } from 'nanoid';
 import generateCssFile from '../utils/generateCssFile';
-import { generateStyleKeywords } from '../utils/generateKeywords';
+import { generateStyleKeywords, reverseSpellingLookup } from '../utils/generateKeywords';
 import { SCRIPTS } from '../utils/utils';
 
 /**
@@ -163,7 +163,7 @@ export const UploadScriptsComponent = (props) => {
 						.trim();
 				}
 
-                if(variableFont && !id.endsWith('-vf')) fontTitle = fontTitle + ' VF';
+                if(variableFont && !fontTitle.toLowerCase().trim().endsWith(' vf')) fontTitle = fontTitle + ' VF';
 
                 if(italicKW.length > 0){
                     italicKW = italicKW.map( item => reverseSpellingLookup(item)); // replace each item in the italicKW list with the value in reverseSpellingLookup

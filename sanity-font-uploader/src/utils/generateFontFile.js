@@ -30,7 +30,7 @@ export default async function generateFontFile({
 			codes: codes
 		})
 	}).catch(e => {
-		console.log(e.message);
+		console.error(e.message);
 		return -1;
 	});
 	return 1;

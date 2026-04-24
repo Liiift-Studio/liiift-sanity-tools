@@ -46,7 +46,7 @@ export const FontScriptUploaderComponent = (props) => {
 	 * Updates filenames state based on scriptFileInput changes
 	 */
 	useEffect(() => {
-		if (!scriptFileInput || scriptFileInput.length == 0) return;
+		if (!scriptFileInput || Object.keys(scriptFileInput).length === 0) return;
 		handleSetFilenames();
 	}, [scriptFileInput]);
 
