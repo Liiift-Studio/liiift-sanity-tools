@@ -1,0 +1,64 @@
+{
+	"name": "@liiift-studio/sanity-font-uploader",
+	"version": "1.0.0",
+	"description": "Sanity Studio plugin — batch font uploader with format conversion, metadata extraction, CSS generation, and script variant support. Supports Sanity v3, v4, and v5.",
+	"license": "MIT",
+	"author": "Liiift Studio",
+	"keywords": [
+		"sanity",
+		"sanity-plugin",
+		"sanity-studio",
+		"font",
+		"font-upload",
+		"typeface",
+		"font-management",
+		"woff2",
+		"font-conversion",
+		"css-generation"
+	],
+	"main": "./dist/index.js",
+	"module": "./dist/index.mjs",
+	"exports": {
+		".": {
+			"source": "./src/index.js",
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.js",
+			"default": "./dist/index.mjs"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch",
+		"prepublishOnly": "npm run build"
+	},
+	"dependencies": {
+		"base-64": "^1.0.0",
+		"buffer": "^6.0.3",
+		"fontkit": "^2.0.2",
+		"nanoid": "^5.0.0",
+		"slugify": "^1.6.6"
+	},
+	"peerDependencies": {
+		"@sanity/icons": ">=3",
+		"@sanity/ui": ">=3",
+		"react": ">=18",
+		"sanity": ">=3"
+	},
+	"devDependencies": {
+		"@sanity/icons": "^3",
+		"@sanity/ui": "^3",
+		"@types/react": "^19",
+		"react": "^19",
+		"sanity": "^5",
+		"tsup": "^8",
+		"typescript": "^5"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Liiift-Studio/sanity-tools"
+	}
+}
