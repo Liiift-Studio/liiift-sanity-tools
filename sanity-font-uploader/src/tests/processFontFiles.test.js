@@ -221,8 +221,7 @@ describe('determineWeight', () => {
 		expect(determineWeight(font, 'Medium')).toBe(500);
 		expect(determineWeight(font, 'Black')).toBe(900);
 		expect(determineWeight(font, 'SemiBold')).toBe(600);
-		// NOTE: 'ExtraBold' matches /bold/ before /extra bold|extrabold/ in the regex chain — returns 700
-		expect(determineWeight(font, 'ExtraBold')).toBe(700);
+		expect(determineWeight(font, 'ExtraBold')).toBe(800);
 		expect(determineWeight(font, 'Thin')).toBe(200);
 		expect(determineWeight(font, 'Hairline')).toBe(100);
 	});

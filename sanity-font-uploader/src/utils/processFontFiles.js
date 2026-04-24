@@ -421,8 +421,8 @@ export const determineWeight = (font, weightName) => {
 	if (/regular|normal/.test(wn)) return 400;
 	if (/medium/.test(wn)) return 500;
 	if (/semi bold|semibold/.test(wn)) return 600;
-	if (/bold/.test(wn)) return 700;
 	if (/extra bold|extrabold/.test(wn)) return 800;
+	if (/bold/.test(wn)) return 700;
 	if (/black|ultra/.test(wn)) return 900;
 
 	return 400;
