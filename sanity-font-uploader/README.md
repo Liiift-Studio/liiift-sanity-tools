@@ -124,6 +124,7 @@ When `SANITY_STUDIO_SCRIPTS` is set, `UploadScriptsComponent` and `FontScriptUpl
 
 | Variable | Required | Description |
 |---|---|---|
+| `SANITY_STUDIO_SITE_URL` | Yes | Base URL of the consuming site (e.g. `https://my-foundry.com`). Used by `generateFontFile` to call `/api/sanity/fontWorker` for server-side format conversion. |
 | `SANITY_STUDIO_SCRIPTS` | No | Comma-separated list of script variant names (e.g. `latin,greek,arabic`). Controls which script tabs appear in the upload UI. |
 
 ---
