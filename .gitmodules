@@ -25,9 +25,6 @@
 [submodule "sanity-font-data-extractor"]
 	path = sanity-font-data-extractor
 	url = https://github.com/Liiift-Studio/sanity-font-data-extractor.git
-[submodule "sanity-font-management-suite"]
-	path = sanity-font-management-suite
-	url = https://github.com/Liiift-Studio/sanity-font-management-suite.git
 [submodule "sanity-renewals-authorization"]
 	path = sanity-renewals-authorization
 	url = https://github.com/Liiift-Studio/sanity-renewals-authorization.git

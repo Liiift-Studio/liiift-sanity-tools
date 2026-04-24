@@ -97,7 +97,7 @@ export const FontScriptUploaderComponent = (props) => {
 	 * Generates CSS file for a specific language
 	 */
 	const handleGenerateCssFile = useCallback(async (language) => {
-		console.log('Handle generate css ', scriptFileInput[scriptFileInput]?.woff2?.asset._ref);
+		console.log('Handle generate css ', scriptFileInput[language]?.woff2?.asset._ref);
 		setMessage({ ...message, [language]: 'Generating css: ' + doc_title + '.css' });
 
 		let woff2Buffer = await client.fetch(`*[_id == '${scriptFileInput[scriptFileInput]?.woff2?.asset._ref}']{originalFilename, url}`);
