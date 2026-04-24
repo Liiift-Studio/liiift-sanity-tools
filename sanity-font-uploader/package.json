@@ -38,7 +38,11 @@
 		"test:watch": "vitest",
 		"build": "npm run test && tsup",
 		"dev": "tsup --watch",
-		"prepublishOnly": "npm run build"
+		"prepublishOnly": "npm run build",
+		"link:darden": "npm link && cd ../../../sites/darden/sanity && npm link @liiift-studio/sanity-font-uploader",
+		"link:tdf": "npm link && cd ../../../sites/tdf/sanity && npm link @liiift-studio/sanity-font-uploader",
+		"link:mckl": "npm link && cd ../../../sites/mckl/cms && npm link @liiift-studio/sanity-font-uploader",
+		"link:all": "npm link && cd ../../../sites/darden/sanity && npm link @liiift-studio/sanity-font-uploader && cd ../../tdf/sanity && npm link @liiift-studio/sanity-font-uploader && cd ../../mckl/cms && npm link @liiift-studio/sanity-font-uploader"
 	},
 	"dependencies": {
 		"base-64": "^1.0.0",

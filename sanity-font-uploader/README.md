@@ -170,6 +170,28 @@ import {
 
 ---
 
+## Local development
+
+To use the local source instead of the published npm package, symlink it into a foundry repo:
+
+```bash
+# From the sanity-font-uploader directory:
+npm run link:darden   # symlink into Darden Studio
+npm run link:tdf      # symlink into The Designers Foundry
+npm run link:mckl     # symlink into MCKL CMS
+npm run link:all      # symlink into all three at once
+```
+
+Then in a separate terminal, run the watch build so the symlinked consumers pick up changes live:
+
+```bash
+npm run dev
+```
+
+To restore the published package in a consumer repo, run `npm install` inside that repo (with `--legacy-peer-deps` for TDF).
+
+---
+
 ## License
 
 MIT — [Liiift Studio](https://github.com/Liiift-Studio)
