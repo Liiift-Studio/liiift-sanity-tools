@@ -191,7 +191,7 @@ export default async function generateCssFile({
 	}
 	catch (err) {
 		console.error(err);
-		return -1;
+		throw err;
 	}
 
 }

@@ -1,6 +1,6 @@
 {
 	"name": "@liiift-studio/sanity-font-uploader",
-	"version": "1.0.1",
+	"version": "2.0.4",
 	"description": "Sanity Studio plugin — batch font uploader with format conversion, metadata extraction, CSS generation, and script variant support. Supports Sanity v3, v4, and v5.",
 	"license": "MIT",
 	"author": "Liiift Studio",
@@ -28,12 +28,21 @@
 	},
 	"files": [
 		"dist",
-		"src"
+		"src/components",
+		"src/hooks",
+		"src/utils",
+		"src/index.js"
 	],
 	"scripts": {
-		"build": "tsup",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"build": "npm run test && tsup",
 		"dev": "tsup --watch",
-		"prepublishOnly": "npm run build"
+		"prepublishOnly": "npm run build",
+		"link:darden": "npm link && cd ../../../sites/darden/sanity && npm link @liiift-studio/sanity-font-uploader",
+		"link:tdf": "npm link && cd ../../../sites/tdf/sanity && npm link @liiift-studio/sanity-font-uploader",
+		"link:mckl": "npm link && cd ../../../sites/mckl/cms && npm link @liiift-studio/sanity-font-uploader",
+		"link:all": "npm link && cd ../../../sites/darden/sanity && npm link @liiift-studio/sanity-font-uploader && cd ../../tdf/sanity && npm link @liiift-studio/sanity-font-uploader && cd ../../mckl/cms && npm link @liiift-studio/sanity-font-uploader"
 	},
 	"dependencies": {
 		"base-64": "^1.0.0",
@@ -55,10 +64,11 @@
 		"react": "^19",
 		"sanity": "^5",
 		"tsup": "^8",
-		"typescript": "^5"
+		"typescript": "^5",
+		"vitest": "^4.1.5"
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Liiift-Studio/sanity-tools"
+		"url": "git+https://github.com/Liiift-Studio/sanity-tools.git"
 	}
 }

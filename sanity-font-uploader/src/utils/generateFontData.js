@@ -11,7 +11,7 @@ export default async function generateFontData({ fileInput, url, fontKit, fontId
 
 	let srcUrl;
 	if (!url || url == null) {
-		srcUrl = await client.fetch(`*[_id == '${fileInput.ttf.asset._ref}']{url}`);
+		srcUrl = await client.fetch(`*[_id == $id]{url}`, { id: fileInput.ttf.asset._ref });
 		console.log('src url ', srcUrl);
 		srcUrl = srcUrl[0].url;
 	} else {
@@ -31,7 +31,7 @@ export default async function generateFontData({ fileInput, url, fontKit, fontId
 	try {
 		variableAxes = font.variationAxes;
 	} catch (err) {
-		console.log('err: ', err);
+		console.error('err: ', err);
 	}
 
 	let variableInstances;

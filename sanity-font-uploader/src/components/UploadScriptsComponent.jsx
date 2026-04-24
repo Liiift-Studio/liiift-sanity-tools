@@ -1,8 +1,4 @@
-
-/**
- * Component for uploading script variants of fonts and managing their data in Sanity
- * Handles font file processing, metadata extraction, and Sanity document updates
- */
+// Script font uploader: processes and uploads font files per writing system (e.g. Cyrillic, Greek, Arabic)
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, Flex, Grid, Stack, Text, TextInput, MenuButton, Menu, MenuItem, Select } from '@sanity/ui';
@@ -12,7 +8,7 @@ import { useSanityClient } from '../hooks/useSanityClient';
 import { useFormValue } from 'sanity';
 import { nanoid } from 'nanoid';
 import generateCssFile from '../utils/generateCssFile';
-import { generateStyleKeywords } from '../utils/generateKeywords';
+import { generateStyleKeywords, reverseSpellingLookup } from '../utils/generateKeywords';
 import { SCRIPTS } from '../utils/utils';
 
 /**
@@ -167,7 +163,7 @@ export const UploadScriptsComponent = (props) => {
 						.trim();
 				}
 
-                if(variableFont && !id.endsWith('-vf')) fontTitle = fontTitle + ' VF';
+                if(variableFont && !fontTitle.toLowerCase().trim().endsWith(' vf')) fontTitle = fontTitle + ' VF';
 
                 if(italicKW.length > 0){
                     italicKW = italicKW.map( item => reverseSpellingLookup(item)); // replace each item in the italicKW list with the value in reverseSpellingLookup
@@ -317,16 +313,19 @@ export const UploadScriptsComponent = (props) => {
                 let font = fontsObjects[fontId];
 
                 // add existing file refs to new file input
-                let existingFont = await client.fetch(`*[_type == 'font' && _id == '${font._id}']{
-                    fileInput,
-                    description,
-                    metaData,
-                    metrics,
-                    opentypeFeatures,
-                    characterSet,
-                    subfamily,
-                    scriptFileInput,
-                }`);
+                let existingFont = await client.fetch(
+					`*[_type == 'font' && _id == $fontId]{
+						fileInput,
+						description,
+						metaData,
+						metrics,
+						opentypeFeatures,
+						characterSet,
+						subfamily,
+						scriptFileInput,
+					}`,
+					{ fontId: font._id }
+				);
 
                 existingFont = existingFont[0];
 

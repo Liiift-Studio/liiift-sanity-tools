@@ -1,4 +1,4 @@
-// Sanity Studio component for uploading and managing font files in different formats (TTF, OTF, WOFF, WOFF2, EOT, SVG) with CSS generation support
+// Per-script font file manager: Upload/Build/Delete controls for each language variant (TTF, OTF, WOFF, WOFF2, EOT, SVG, CSS)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Stack, Flex, Text, Button } from '@sanity/ui';
@@ -46,7 +46,7 @@ export const FontScriptUploaderComponent = (props) => {
 	 * Updates filenames state based on scriptFileInput changes
 	 */
 	useEffect(() => {
-		if (!scriptFileInput || scriptFileInput.length == 0) return;
+		if (!scriptFileInput || Object.keys(scriptFileInput).length === 0) return;
 		handleSetFilenames();
 	}, [scriptFileInput]);
 
@@ -97,11 +97,14 @@ export const FontScriptUploaderComponent = (props) => {
 	 * Generates CSS file for a specific language
 	 */
 	const handleGenerateCssFile = useCallback(async (language) => {
-		console.log('Handle generate css ', scriptFileInput[language]?.woff2?.asset._ref);
 		setMessage({ ...message, [language]: 'Generating css: ' + doc_title + '.css' });
 
-		let woff2Buffer = await client.fetch(`*[_id == '${scriptFileInput[scriptFileInput]?.woff2?.asset._ref}']{originalFilename, url}`);
-		woff2Buffer = woff2Buffer[0];
+		const woff2AssetRef = scriptFileInput[language]?.woff2?.asset?._ref;
+		// Parameterized — prevents injection via scriptFileInput asset refs
+		let [woff2Buffer] = await client.fetch(
+			`*[_id == $id]{ originalFilename, url }`,
+			{ id: woff2AssetRef }
+		);
 
 		let blob = await fetch(woff2Buffer.url);
 		blob = await blob.blob();
