@@ -1,8 +1,8 @@
-// Batch font uploader with Upload view and toggled Utilities panel
+// Batch font uploader with drag-and-drop, file review list, and toggled Utilities panel
 
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo, useRef } from 'react';
 import { Card, Box, Flex, Grid, Text, Label, Switch, Button, Spinner, Tooltip, Stack } from '@sanity/ui';
-import { ControlsIcon, InfoOutlineIcon } from '@sanity/icons';
+import { ControlsIcon, InfoOutlineIcon, TrashIcon, UploadIcon } from '@sanity/icons';
 import { useFormValue } from 'sanity';
 
 import { useSanityClient } from '../hooks/useSanityClient';
@@ -16,10 +16,12 @@ import generateCssFile from '../utils/generateCssFile';
 
 import StatusDisplay from './StatusDisplay';
 import PriceInput from './PriceInput';
-import UploadButton from './UploadButton';
 import { RegenerateSubfamiliesComponent } from './RegenerateSubfamiliesComponent';
 
-export const BatchUploadFonts = ({ elementProps: { ref } }) => {
+// Accepted font file extensions
+const ACCEPTED_EXTENSIONS = ['ttf', 'otf', 'woff', 'woff2', 'eot', 'svg'];
+
+export const BatchUploadFonts = () => {
 	const [status, setStatus] = useState('ready');
 	const [ready, setReady] = useState(true);
 	const [inputPrice, setInputPrice] = useState('0');
@@ -27,7 +29,10 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 	const [preserveShortenedNames, setPreserveShortenedNames] = useState(true);
 	const [preserveFileNames, setPreserveFileNames] = useState(false);
 	const [showUtilities, setShowUtilities] = useState(false);
+	const [pendingFiles, setPendingFiles] = useState([]);
+	const [isDragging, setIsDragging] = useState(false);
 
+	const fileInputRef = useRef(null);
 	const client = useSanityClient();
 
 	const doc_id = useFormValue(['_id']);
@@ -55,17 +60,21 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 		return true;
 	};
 
-	/** Sorts uploaded files so TTF/OTF are processed before web formats. */
+	/** Sorts font files so TTF/OTF are processed before web formats. */
 	const sortFilesByType = (files) => {
 		if (!files) return [];
 		const typeOrder = ['ttf', 'otf', 'eot', 'svg', 'woff', 'woff2'];
 		return Array.from(files).sort((a, b) => {
-			const aIndex = typeOrder.indexOf(a.name.split('.').pop());
-			const bIndex = typeOrder.indexOf(b.name.split('.').pop());
+			const aIndex = typeOrder.indexOf(a.name.split('.').pop().toLowerCase());
+			const bIndex = typeOrder.indexOf(b.name.split('.').pop().toLowerCase());
 			if (aIndex === bIndex) return a.name.localeCompare(b.name);
 			return aIndex - bIndex;
 		});
 	};
+
+	/** Returns only files with accepted font extensions. */
+	const filterFontFiles = (files) =>
+		Array.from(files).filter(f => ACCEPTED_EXTENSIONS.includes(f.name.split('.').pop().toLowerCase()));
 
 	/** Sets final status after upload completes, reporting any failed files. */
 	const handleCompletionStatus = (failedFiles, setError, setStatus) => {
@@ -83,8 +92,32 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 		}
 	};
 
-	/** Handles the font file upload event — processes, uploads, and updates the typeface document. */
-	const handleUpload = useCallback(async (event) => {
+	/** Adds files from the file picker to the pending list. */
+	const handleFileSelect = useCallback((e) => {
+		const files = filterFontFiles(e.target.files);
+		if (files.length > 0) setPendingFiles(prev => [...prev, ...files]);
+		e.target.value = '';
+	}, []);
+
+	/** Removes a single file from the pending list by object reference. */
+	const handleRemoveFile = useCallback((file) => {
+		setPendingFiles(prev => prev.filter(f => f !== file));
+	}, []);
+
+	const handleDragEnter = useCallback((e) => { e.preventDefault(); setIsDragging(true); }, []);
+	const handleDragOver = useCallback((e) => { e.preventDefault(); }, []);
+	const handleDragLeave = useCallback((e) => { e.preventDefault(); setIsDragging(false); }, []);
+
+	/** Adds dropped font files to the pending list. */
+	const handleDrop = useCallback((e) => {
+		e.preventDefault();
+		setIsDragging(false);
+		const files = filterFontFiles(e.dataTransfer.files);
+		if (files.length > 0) setPendingFiles(prev => [...prev, ...files]);
+	}, []);
+
+	/** Processes and uploads the confirmed pending file list. */
+	const handleConfirmUpload = useCallback(async () => {
 		try {
 			setStatus('Uploading font files...');
 			setReady('upload');
@@ -95,8 +128,8 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 				return false;
 			}
 
-			const files = event.target.files;
-			const sortedFiles = sortFilesByType(files);
+			const sortedFiles = sortFilesByType(pendingFiles);
+			setPendingFiles([]);
 
 			const { fontsObjects, subfamilies, uniqueSubfamilies, newPreferredStyle, failedFiles } =
 				await processFontFiles(
@@ -143,7 +176,7 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 
 		setReady(true);
 		setError(false);
-	}, [stylesObject, title, slug, doc_id, inputPrice, weightKeywordList, italicKeywordList, client, preferredStyleRef, subfamiliesArray, preserveShortenedNames, preserveFileNames]);
+	}, [pendingFiles, stylesObject, title, slug, doc_id, inputPrice, weightKeywordList, italicKeywordList, client, preferredStyleRef, subfamiliesArray, preserveShortenedNames, preserveFileNames]);
 
 	/** Renames all existing font documents in this typeface by re-reading their TTF metadata. */
 	const handleRenameExistingFonts = useCallback(async () => {
@@ -289,6 +322,137 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 		</Flex>
 	);
 
+	/** Renders the drag-and-drop zone. */
+	const renderDropZone = () => (
+		<Box
+			onDragEnter={handleDragEnter}
+			onDragOver={handleDragOver}
+			onDragLeave={handleDragLeave}
+			onDrop={handleDrop}
+			style={{
+				border: `2px dashed ${isDragging ? 'var(--card-focus-ring-color)' : 'var(--card-border-color)'}`,
+				borderRadius: 4,
+				padding: '28px 16px',
+				textAlign: 'center',
+				background: isDragging ? 'rgba(100, 153, 255, 0.06)' : 'transparent',
+				transition: 'border-color 0.12s, background 0.12s',
+				cursor: 'default',
+			}}
+		>
+			<input
+				ref={fileInputRef}
+				type="file"
+				multiple
+				hidden
+				accept=".ttf,.otf,.woff,.woff2,.eot,.svg"
+				onChange={handleFileSelect}
+			/>
+			<Stack space={3}>
+				<Text size={1} muted>
+					{isDragging ? 'Release to add files' : 'Drop font files here'}
+				</Text>
+				<Flex justify="center">
+					<Button
+						mode="ghost"
+						tone="primary"
+						fontSize={1}
+						padding={2}
+						text="Browse files"
+						onClick={() => fileInputRef.current?.click()}
+					/>
+				</Flex>
+			</Stack>
+		</Box>
+	);
+
+	/** Renders the sorted pending file list with remove buttons and upload action. */
+	const renderFileList = () => {
+		const sorted = sortFilesByType(pendingFiles);
+		return (
+			<Stack space={2}>
+				{sorted.map((file, i) => {
+					const ext = file.name.split('.').pop().toUpperCase();
+					return (
+						<Card key={`${file.name}-${file.size}-${i}`} border radius={1} paddingX={2} paddingY={2}>
+							<Flex justify="space-between" align="center" gap={2}>
+								<Flex gap={3} align="center" style={{ flex: 1, minWidth: 0 }}>
+									<Text
+										size={0}
+										style={{ fontFamily: 'monospace', minWidth: '2.5rem', flexShrink: 0 }}
+									>
+										{ext}
+									</Text>
+									<Box style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+										<Text size={1}>{file.name}</Text>
+									</Box>
+								</Flex>
+								<Button
+									mode="bleed"
+									tone="critical"
+									icon={TrashIcon}
+									padding={2}
+									onClick={() => handleRemoveFile(file)}
+								/>
+							</Flex>
+						</Card>
+					);
+				})}
+
+				<Box
+					onDragEnter={handleDragEnter}
+					onDragOver={handleDragOver}
+					onDragLeave={handleDragLeave}
+					onDrop={handleDrop}
+					style={{
+						border: `2px dashed ${isDragging ? 'var(--card-focus-ring-color)' : 'var(--card-border-color)'}`,
+						borderRadius: 4,
+						padding: '10px 16px',
+						textAlign: 'center',
+						background: isDragging ? 'rgba(100, 153, 255, 0.06)' : 'transparent',
+						transition: 'border-color 0.12s, background 0.12s',
+					}}
+				>
+					<input
+						ref={fileInputRef}
+						type="file"
+						multiple
+						hidden
+						accept=".ttf,.otf,.woff,.woff2,.eot,.svg"
+						onChange={handleFileSelect}
+					/>
+					<Flex align="center" justify="center" gap={2}>
+						<Text size={1} muted>{isDragging ? 'Release to add' : 'Drop more files or'}</Text>
+						<Button
+							mode="bleed"
+							tone="primary"
+							fontSize={1}
+							padding={1}
+							text="browse"
+							onClick={() => fileInputRef.current?.click()}
+						/>
+					</Flex>
+				</Box>
+
+				<Button
+					mode="ghost"
+					tone="primary"
+					width="fill"
+					icon={UploadIcon}
+					text={`Upload ${pendingFiles.length} Font${pendingFiles.length === 1 ? '' : 's'}`}
+					onClick={handleConfirmUpload}
+				/>
+				<Button
+					mode="bleed"
+					tone="default"
+					width="fill"
+					fontSize={1}
+					text="Clear selection"
+					onClick={() => setPendingFiles([])}
+				/>
+			</Stack>
+		);
+	};
+
 	return (
 		<>
 			{title && title !== '' && slug && slug !== '' &&
@@ -394,7 +558,7 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 										</Stack>
 									</Grid>
 									<Box marginTop={3}>
-										<UploadButton ref={ref} handleUpload={handleUpload} />
+										{pendingFiles.length === 0 ? renderDropZone() : renderFileList()}
 									</Box>
 								</>
 								: renderSpinner()
