@@ -1,7 +1,8 @@
 // Per-font file manager: upload/build/delete buttons for each font format
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Button, Stack, Flex, Box, Text } from '@sanity/ui';
+import { Button, Stack, Flex, Box, Text, Card } from '@sanity/ui';
+import { TrashIcon } from '@sanity/icons';
 import { useFormValue, set, unset } from 'sanity';
 import { Buffer } from 'buffer';
 import * as fontkit from 'fontkit';
@@ -359,66 +360,122 @@ export const SingleUploaderTool = (props) => {
 		}
 	}, [fileInput, value, doc_id, onChange, client]);
 
-	/** Renders an Upload/Build/Delete row for a given font format. */
+	/** Renders a bordered upload/build/delete row for a given font format. */
 	const renderFontSection = (format, buildSource = null) => {
 		const formatUpper = format.toUpperCase();
-		const hasFile = fileInput?.[format]?.asset?._ref;
+		const hasFile = !!fileInput?.[format]?.asset?._ref;
 		const fileUrl = hasFile
 			? `https://cdn.sanity.io/files/${process.env.SANITY_STUDIO_PROJECT_ID}/${process.env.SANITY_STUDIO_DATASET}/${fileInput[format].asset._ref.replace('file-', '').replace('-', '.')}`
 			: null;
 
 		return (
-			<Flex justify="space-between" align="center" wrap="wrap" gap={2}>
-				<Box style={{ flex: 1, minWidth: '200px' }}>
-					{!hasFile ? (
-						<Text size={1}>{formatUpper}:&nbsp;<strong>{filenames?.[format] || 'Empty'}</strong></Text>
-					) : (
-						<Text size={1}>
-							{formatUpper}:&nbsp;
-							<a href={fileUrl} target="_blank" rel="noreferrer">
-								<strong>{filenames?.[format] || 'File'}</strong>
-							</a>
+			<Card border radius={1} padding={2}>
+				<Flex justify="space-between" align="center" gap={2}>
+					<Flex gap={3} align="center" style={{ flex: 1, minWidth: 0 }}>
+						<Text size={0} style={{ fontFamily: 'monospace', minWidth: '2.5rem', flexShrink: 0, opacity: hasFile ? 1 : 0.5 }}>
+							{formatUpper}
 						</Text>
-					)}
-				</Box>
-				<Flex gap={2} align="center">
+						{hasFile ? (
+							<Text size={1} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+								<a href={fileUrl} target="_blank" rel="noreferrer">{filenames?.[format] || 'File'}</a>
+							</Text>
+						) : (
+							<Text size={1} muted>—</Text>
+						)}
+					</Flex>
 					{status === 'ready' && (
-						<>
+						<Flex gap={1} align="center" style={{ flexShrink: 0 }}>
 							{buildSource && fileInput?.[buildSource] && (
-								<Button mode="default" tone="primary" onClick={() => handleGenerateFontFile(format, fileInput[buildSource])} text="Build" />
+								<Button mode="ghost" tone="primary" fontSize={1} padding={2} onClick={() => handleGenerateFontFile(format, fileInput[buildSource])} text="Build" />
 							)}
-							<Button as="label" mode="ghost" tone="primary" style={{ cursor: 'pointer' }}>
-								<Text>Upload</Text>
-								<input ref={ref} type="file" placeholder="Upload file" hidden onChange={(e) => handleUpload(e, format)} />
+							<Button as="label" mode="ghost" tone="primary" fontSize={1} padding={2} style={{ cursor: 'pointer' }}>
+								<Text size={1}>Upload</Text>
+								<input ref={ref} type="file" hidden onChange={(e) => handleUpload(e, format)} />
 							</Button>
-							{fileInput?.[format] && (
-								<Button mode="ghost" tone="critical" onClick={() => handleDelete(format)} text="×" />
+							{hasFile && (
+								<Button mode="bleed" tone="critical" icon={TrashIcon} padding={2} onClick={() => handleDelete(format)} />
 							)}
-						</>
+						</Flex>
 					)}
 				</Flex>
-			</Flex>
+			</Card>
 		);
 	};
 
+	/** Renders the CSS row — build-only, no direct upload. */
+	const renderCssSection = () => {
+		const hasFile = !!fileInput?.css?.asset?._ref;
+		const fileUrl = hasFile
+			? `https://cdn.sanity.io/files/${process.env.SANITY_STUDIO_PROJECT_ID}/${process.env.SANITY_STUDIO_DATASET}/${fileInput.css.asset._ref.replace('file-', '').replace('-', '.')}`
+			: null;
+
+		return (
+			<Card border radius={1} padding={2}>
+				<Flex justify="space-between" align="center" gap={2}>
+					<Flex gap={3} align="center" style={{ flex: 1, minWidth: 0 }}>
+						<Text size={0} style={{ fontFamily: 'monospace', minWidth: '2.5rem', flexShrink: 0, opacity: hasFile ? 1 : 0.5 }}>
+							CSS
+						</Text>
+						{hasFile ? (
+							<Text size={1} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+								<a href={fileUrl} target="_blank" rel="noreferrer">{filenames?.css || 'File'}</a>
+							</Text>
+						) : (
+							<Text size={1} muted>—</Text>
+						)}
+					</Flex>
+					{status === 'ready' && (
+						<Flex gap={1} align="center" style={{ flexShrink: 0 }}>
+							{fileInput?.woff2 && (
+								<Button mode="ghost" tone="primary" fontSize={1} padding={2} onClick={() => handleGenerateCssFile()} text="Build" />
+							)}
+							{hasFile && (
+								<Button mode="bleed" tone="critical" icon={TrashIcon} padding={2} onClick={() => handleDelete('css')} />
+							)}
+						</Flex>
+					)}
+				</Flex>
+			</Card>
+		);
+	};
+
+	/** Renders the Data row — shows metadata version, generate button. */
+	const renderDataSection = () => (
+		<Card border radius={1} padding={2}>
+			<Flex justify="space-between" align="center" gap={2}>
+				<Flex gap={3} align="center" style={{ flex: 1, minWidth: 0 }}>
+					<Text size={0} style={{ fontFamily: 'monospace', minWidth: '2.5rem', flexShrink: 0, opacity: doc_metaData?.version ? 1 : 0.5 }}>
+						DATA
+					</Text>
+					{doc_metaData?.version ? (
+						<Text size={1}>v{doc_metaData.version} <Text as="span" size={1} muted>({doc_metaData.genDate})</Text></Text>
+					) : (
+						<Text size={1} muted>—</Text>
+					)}
+				</Flex>
+				{status === 'ready' && fileInput?.ttf && (
+					<Flex gap={1} align="center" style={{ flexShrink: 0 }}>
+						<Button mode="ghost" tone="primary" fontSize={1} padding={2} onClick={() => handleGenerateFontData()} text="Generate" />
+					</Flex>
+				)}
+			</Flex>
+		</Card>
+	);
+
 	return (
-		<Stack space={3}>
-			<Box>
-				<StatusDisplay status={status} error={error} />
-			</Box>
+		<Stack space={2}>
+			<StatusDisplay status={status} error={error} />
 
 			{renderFontSection('ttf')}
 
 			{status === 'ready' && fileInput?.ttf && (
-				<Box>
-					<Button
-						mode="default"
-						tone="primary"
-						onClick={() => handleGenerateFontFile('all', fileInput.ttf)}
-						text="Regenerate Files/Data from TTF"
-						style={{ width: '100%' }}
-					/>
-				</Box>
+				<Button
+					mode="ghost"
+					tone="primary"
+					onClick={() => handleGenerateFontFile('all', fileInput.ttf)}
+					text="Regenerate Files / Data from TTF"
+					style={{ width: '100%' }}
+				/>
 			)}
 
 			{renderFontSection('otf', 'woff')}
@@ -426,58 +483,12 @@ export const SingleUploaderTool = (props) => {
 			{renderFontSection('woff2', 'ttf')}
 			{renderFontSection('eot', 'ttf')}
 			{renderFontSection('svg', 'ttf')}
+			{renderCssSection()}
+			{renderDataSection()}
 
-			{/* CSS row — Build only (no direct upload) */}
-			<Flex justify="space-between" align="center" wrap="wrap" gap={2}>
-				<Box style={{ flex: 1, minWidth: '200px' }}>
-					{!fileInput?.css?.asset?._ref ? (
-						<Text size={1}>CSS:&nbsp;<strong>{filenames?.css || 'Empty'}</strong></Text>
-					) : (
-						<Text size={1}>
-							CSS:&nbsp;
-							<a
-								href={`https://cdn.sanity.io/files/${process.env.SANITY_STUDIO_PROJECT_ID}/${process.env.SANITY_STUDIO_DATASET}/${fileInput.css.asset._ref.replace('file-', '').replace('-', '.')}`}
-								target="_blank"
-								rel="noreferrer"
-							>
-								<strong>{filenames?.css || 'File'}</strong>
-							</a>
-						</Text>
-					)}
-				</Box>
-				<Flex gap={2} align="center">
-					{status === 'ready' && (
-						<>
-							{value?.woff2 && <Button mode="default" tone="primary" onClick={() => handleGenerateCssFile()} text="Build" />}
-							{value?.css && <Button mode="ghost" tone="critical" onClick={() => handleDelete('css')} text="×" />}
-						</>
-					)}
-				</Flex>
-			</Flex>
-
-			{/* Data row */}
-			<Flex justify="space-between" align="center" wrap="wrap" gap={2}>
-				<Box style={{ flex: 1, minWidth: '200px' }}>
-					<Text size={1}>
-						Data:&nbsp;
-						{doc_metaData?.version
-							? <strong>v{doc_metaData.version} ({doc_metaData.genDate})</strong>
-							: <strong>Empty</strong>
-						}
-					</Text>
-				</Box>
-				<Flex gap={2} align="center">
-					{status === 'ready' && value?.ttf &&
-						<Button mode="default" tone="primary" onClick={() => handleGenerateFontData()} text="Generate" />
-					}
-				</Flex>
-			</Flex>
-
-			{status === 'ready' && (value?.ttf || value?.otf || value?.woff || value?.woff2) &&
-				<Box>
-					<Button mode="ghost" tone="critical" onClick={() => handleDeleteAll()} text="Delete All" style={{ width: '100%' }} />
-				</Box>
-			}
+			{status === 'ready' && (fileInput?.ttf || fileInput?.otf || fileInput?.woff || fileInput?.woff2) && (
+				<Button mode="ghost" tone="critical" onClick={() => handleDeleteAll()} text="Delete All" style={{ width: '100%' }} />
+			)}
 		</Stack>
 	);
 };

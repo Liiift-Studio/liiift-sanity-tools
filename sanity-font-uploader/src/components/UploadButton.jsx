@@ -1,25 +1,33 @@
-// Invisible-overlay file input styled as a Sanity UI primary button
-
+// Drop-zone style upload button with hidden file input overlay
 import React, { forwardRef } from 'react';
-import { Button, Text, Stack } from '@sanity/ui';
+import { Card, Flex, Stack, Text } from '@sanity/ui';
+import { UploadIcon } from '@sanity/icons';
 
 /**
- * Primary button with a transparent full-size file input overlay.
+ * Drop-zone style card with a transparent full-size file input overlay.
  * The ref is forwarded to the hidden <input> element.
  * @param {Object} props
  * @param {Function} props.handleUpload - onChange handler for the file input
  */
 const UploadButton = forwardRef(({ handleUpload }, ref) => {
 	return (
-		<Button
-			tone="primary"
-			padding={3}
-			style={{ position: 'relative' }}
+		<Card
+			radius={2}
+			padding={5}
+			style={{
+				position: 'relative',
+				border: '1px dashed var(--card-border-color)',
+				cursor: 'pointer',
+				textAlign: 'center',
+			}}
 		>
-			<Stack space={2}>
-				<Text align="center">Upload (ttf/otf/woff/woff2/etc...)</Text>
-				<Text size={1} muted align="center">replaces existing fonts</Text>
-			</Stack>
+			<Flex direction="column" align="center" justify="center" gap={3} style={{ pointerEvents: 'none' }}>
+				<Text muted><UploadIcon style={{ fontSize: '1.5rem' }} /></Text>
+				<Stack space={1}>
+					<Text align="center" weight="semibold">Upload font files</Text>
+					<Text size={1} muted align="center">TTF, OTF, WOFF, WOFF2 — replaces existing fonts</Text>
+				</Stack>
+			</Flex>
 			<input
 				ref={ref}
 				type="file"
@@ -35,7 +43,7 @@ const UploadButton = forwardRef(({ handleUpload }, ref) => {
 				}}
 				onChange={handleUpload}
 			/>
-		</Button>
+		</Card>
 	);
 });
 
