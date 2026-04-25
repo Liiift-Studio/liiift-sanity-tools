@@ -524,7 +524,7 @@ export const BatchUploadFonts = () => {
 	return (
 		<>
 			{title && title !== '' && slug && slug !== '' &&
-				<Stack space={2}>
+				<>
 					<StatusDisplay
 						status={status}
 						error={error}
@@ -632,7 +632,7 @@ export const BatchUploadFonts = () => {
 								: renderProcessing()
 						)}
 					</Card>
-				</Stack>
+				</>
 			}
 		</>
 	);
