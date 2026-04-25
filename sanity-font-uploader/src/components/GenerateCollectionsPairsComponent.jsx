@@ -1,7 +1,7 @@
 // Generates font collections and pairs from a typeface's linked fonts
 
 import React, { useCallback, useState } from 'react';
-import { Stack, Flex, Text, Button, Card, Spinner } from '@sanity/ui';
+import { Stack, Grid, Flex, Text, Button, Card, Spinner, Box } from '@sanity/ui';
 import { useFormValue } from 'sanity';
 import slugify from 'slugify';
 import { nanoid } from 'nanoid';
@@ -213,47 +213,43 @@ export const GenerateCollectionsPairsComponent = () => {
 	if (!title || !slug) return null;
 
 	return (
-		<Stack space={3}>
+		<Stack space={2}>
 			<StatusDisplay status={status} error={false} />
 			<Card border padding={2} shadow={1} radius={2}>
 				{ready ? (
-					<Stack space={4}>
-						<Stack space={2}>
-							<Flex align="center" gap={2}>
-								<Text size={1} muted>Collection Price/Font:</Text>
-								<Text size={1} muted>$</Text>
-								<input
-									value={collectionPrice}
-									onChange={(e) => setCollectionPrice(e.target.value)}
-									type="number"
-									style={{ textAlign: 'end', padding: '5px', maxWidth: '75px' }}
-								/>
-							</Flex>
-							<Button mode="ghost" tone="primary" width="fill" onClick={handleGenerateCollections}>
-								<Stack space={1}>
-									<Text align="center">Generate Collections</Text>
-									<Text size={0} muted align="center">replaces existing collections</Text>
-								</Stack>
-							</Button>
-						</Stack>
-						<Stack space={2}>
-							<Flex align="center" gap={2}>
-								<Text size={1} muted>Pair Price:</Text>
-								<Text size={1} muted>$</Text>
-								<input
-									value={pairPrice}
-									onChange={(e) => setPairPrice(e.target.value)}
-									type="number"
-									style={{ textAlign: 'end', padding: '5px', maxWidth: '75px' }}
-								/>
-							</Flex>
-							<Button mode="ghost" tone="primary" width="fill" onClick={handleGeneratePairs}>
-								<Stack space={1}>
-									<Text align="center">Generate Pairs</Text>
-									<Text size={0} muted align="center">replaces existing pairs</Text>
-								</Stack>
-							</Button>
-						</Stack>
+					<Stack space={3}>
+						<Grid columns={[2]} gap={4} marginTop={1} marginBottom={1}>
+							<Stack space={2}>
+								<Text size={1} muted>Collection price / font</Text>
+								<Flex align="center" gap={2}>
+									<Text size={1} muted>$</Text>
+									<input
+										value={collectionPrice}
+										onChange={(e) => setCollectionPrice(e.target.value)}
+										type="number"
+										style={{ textAlign: 'end', padding: '5px', maxWidth: '75px' }}
+									/>
+								</Flex>
+							</Stack>
+							<Stack space={2}>
+								<Text size={1} muted>Pair price</Text>
+								<Flex align="center" gap={2}>
+									<Text size={1} muted>$</Text>
+									<input
+										value={pairPrice}
+										onChange={(e) => setPairPrice(e.target.value)}
+										type="number"
+										style={{ textAlign: 'end', padding: '5px', maxWidth: '75px' }}
+									/>
+								</Flex>
+							</Stack>
+						</Grid>
+						<Box>
+							<Button mode="ghost" tone="primary" width="fill" text="Generate Collections" onClick={handleGenerateCollections} />
+						</Box>
+						<Box>
+							<Button mode="ghost" tone="primary" width="fill" text="Generate Pairs" onClick={handleGeneratePairs} />
+						</Box>
 					</Stack>
 				) : (
 					<Flex align="center" justify="center" gap={3} padding={4}>

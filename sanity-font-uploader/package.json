@@ -1,6 +1,6 @@
 {
 	"name": "@liiift-studio/sanity-font-uploader",
-	"version": "2.1.0",
+	"version": "2.1.1",
 	"description": "Sanity Studio plugin — batch font uploader with format conversion, metadata extraction, CSS generation, and script variant support. Supports Sanity v3, v4, and v5.",
 	"license": "MIT",
 	"author": "Liiift Studio",
