@@ -1,7 +1,7 @@
 // Generates font collections and pairs from a typeface's linked fonts
 
 import React, { useCallback, useState } from 'react';
-import { Stack, Grid, Flex, Text, Button, Card, Spinner, Box } from '@sanity/ui';
+import { Stack, Grid, Flex, Text, Button, Card, Spinner } from '@sanity/ui';
 import { useFormValue } from 'sanity';
 import slugify from 'slugify';
 import { nanoid } from 'nanoid';
@@ -244,12 +244,8 @@ export const GenerateCollectionsPairsComponent = () => {
 								</Flex>
 							</Stack>
 						</Grid>
-						<Box>
-							<Button mode="ghost" tone="primary" width="fill" text="Generate Collections" onClick={handleGenerateCollections} />
-						</Box>
-						<Box>
-							<Button mode="ghost" tone="primary" width="fill" text="Generate Pairs" onClick={handleGeneratePairs} />
-						</Box>
+						<Button mode="ghost" tone="primary" text="Generate Collections" style={{ width: '100%' }} onClick={handleGenerateCollections} />
+						<Button mode="ghost" tone="primary" text="Generate Pairs" style={{ width: '100%' }} onClick={handleGeneratePairs} />
 					</Stack>
 				) : (
 					<Flex align="center" justify="center" gap={3} padding={4}>

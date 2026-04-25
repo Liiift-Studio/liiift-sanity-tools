@@ -1,8 +1,8 @@
 // Batch font uploader with drag-and-drop, file review list, and toggled Utilities panel
 
-import React, { useCallback, useState, useMemo, useRef } from 'react';
+import React, { useCallback, useState, useMemo, useRef, useEffect } from 'react';
 import { Card, Box, Flex, Grid, Text, Label, Switch, Button, Spinner, Tooltip, Stack } from '@sanity/ui';
-import { ControlsIcon, InfoOutlineIcon, TrashIcon, UploadIcon } from '@sanity/icons';
+import { ControlsIcon, InfoOutlineIcon, TrashIcon, UploadIcon, WarningOutlineIcon } from '@sanity/icons';
 import { useFormValue } from 'sanity';
 
 import { useSanityClient } from '../hooks/useSanityClient';
@@ -21,6 +21,13 @@ import { RegenerateSubfamiliesComponent } from './RegenerateSubfamiliesComponent
 // Accepted font file extensions
 const ACCEPTED_EXTENSIONS = ['ttf', 'otf', 'woff', 'woff2', 'eot', 'svg'];
 
+/** Formats elapsed seconds as "Xm Ys" or "Ys". */
+const formatElapsed = (s) => {
+	const m = Math.floor(s / 60);
+	const sec = s % 60;
+	return m > 0 ? `${m}m ${sec}s` : `${sec}s`;
+};
+
 export const BatchUploadFonts = () => {
 	const [status, setStatus] = useState('ready');
 	const [ready, setReady] = useState(true);
@@ -31,8 +38,12 @@ export const BatchUploadFonts = () => {
 	const [showUtilities, setShowUtilities] = useState(false);
 	const [pendingFiles, setPendingFiles] = useState([]);
 	const [isDragging, setIsDragging] = useState(false);
+	const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
 	const fileInputRef = useRef(null);
+	const elapsedTimerRef = useRef(null);
+	const wakeLockRef = useRef(null);
+
 	const client = useSanityClient();
 
 	const doc_id = useFormValue(['_id']);
@@ -43,6 +54,40 @@ export const BatchUploadFonts = () => {
 	const subfamiliesArray = stylesObject?.subfamilies || [];
 
 	const { weightKeywordList, italicKeywordList } = useMemo(() => generateStyleKeywords(), []);
+
+	// Elapsed timer — runs while upload is in progress
+	useEffect(() => {
+		if (ready !== true) {
+			setElapsedSeconds(0);
+			elapsedTimerRef.current = setInterval(() => {
+				setElapsedSeconds(s => s + 1);
+			}, 1000);
+		} else {
+			clearInterval(elapsedTimerRef.current);
+		}
+		return () => clearInterval(elapsedTimerRef.current);
+	}, [ready]);
+
+	// Warn before navigating away while an upload is running
+	useEffect(() => {
+		if (ready !== true) {
+			const handler = (e) => { e.preventDefault(); e.returnValue = ''; };
+			window.addEventListener('beforeunload', handler);
+			return () => window.removeEventListener('beforeunload', handler);
+		}
+	}, [ready]);
+
+	// Wake Lock — prevents the screen from sleeping during long uploads
+	useEffect(() => {
+		if (ready !== true) {
+			navigator.wakeLock?.request('screen')
+				.then(lock => { wakeLockRef.current = lock; })
+				.catch(() => {});
+		} else if (wakeLockRef.current) {
+			wakeLockRef.current.release().catch(() => {});
+			wakeLockRef.current = null;
+		}
+	}, [ready]);
 
 	/** Validates that title and price are set before starting an upload. */
 	const validateInputs = (title, inputPrice) => {
@@ -314,12 +359,23 @@ export const BatchUploadFonts = () => {
 		</Tooltip>
 	);
 
-	/** Renders a spinner with live status text. */
-	const renderSpinner = () => (
-		<Flex align="center" justify="center" gap={3} padding={4}>
-			<Spinner />
-			<Text muted size={1}>{status}</Text>
-		</Flex>
+	/** Renders the in-progress state: spinner, live status, elapsed time, and do-not-close warning. */
+	const renderProcessing = () => (
+		<Stack space={3} paddingY={2}>
+			<Flex align="center" gap={3}>
+				<Spinner />
+				<Text size={1} muted>{status}</Text>
+			</Flex>
+			<Card tone="caution" border radius={2} padding={2}>
+				<Flex align="center" justify="space-between" gap={2}>
+					<Flex align="center" gap={2}>
+						<WarningOutlineIcon style={{ flexShrink: 0 }} />
+						<Text size={1} weight="semibold">Do not close or reload this tab</Text>
+					</Flex>
+					<Text size={1} muted style={{ flexShrink: 0 }}>{formatElapsed(elapsedSeconds)}</Text>
+				</Flex>
+			</Card>
+		</Stack>
 	);
 
 	/** Renders the drag-and-drop zone. */
@@ -365,39 +421,58 @@ export const BatchUploadFonts = () => {
 		</Box>
 	);
 
-	/** Renders the sorted pending file list with remove buttons and upload action. */
+	/** Renders the sorted pending file list with a scrollable container, file count, and upload action. */
 	const renderFileList = () => {
 		const sorted = sortFilesByType(pendingFiles);
 		return (
 			<Stack space={2}>
-				{sorted.map((file, i) => {
-					const ext = file.name.split('.').pop().toUpperCase();
-					return (
-						<Card key={`${file.name}-${file.size}-${i}`} border radius={1} paddingX={2} paddingY={2}>
-							<Flex justify="space-between" align="center" gap={2}>
-								<Flex gap={3} align="center" style={{ flex: 1, minWidth: 0 }}>
-									<Text
-										size={0}
-										style={{ fontFamily: 'monospace', minWidth: '2.5rem', flexShrink: 0 }}
-									>
-										{ext}
-									</Text>
-									<Box style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-										<Text size={1}>{file.name}</Text>
-									</Box>
-								</Flex>
-								<Button
-									mode="bleed"
-									tone="critical"
-									icon={TrashIcon}
-									padding={2}
-									onClick={() => handleRemoveFile(file)}
-								/>
-							</Flex>
-						</Card>
-					);
-				})}
+				{/* Header: file count + clear */}
+				<Flex align="center" justify="space-between">
+					<Text size={1} muted>
+						{pendingFiles.length} file{pendingFiles.length === 1 ? '' : 's'} selected
+					</Text>
+					<Button
+						mode="bleed"
+						tone="default"
+						fontSize={1}
+						padding={1}
+						text="Clear all"
+						onClick={() => setPendingFiles([])}
+					/>
+				</Flex>
 
+				{/* Scrollable file list */}
+				<Box style={{ maxHeight: '260px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+					{sorted.map((file, i) => {
+						const ext = file.name.split('.').pop().toUpperCase();
+						return (
+							<Card key={`${file.name}-${file.size}-${i}`} border radius={1} paddingX={2} paddingY={2}>
+								<Flex justify="space-between" align="center" gap={2}>
+									<Flex gap={3} align="center" style={{ flex: 1, minWidth: 0 }}>
+										<Text
+											size={0}
+											style={{ fontFamily: 'monospace', minWidth: '2.5rem', flexShrink: 0 }}
+										>
+											{ext}
+										</Text>
+										<Box style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+											<Text size={1}>{file.name}</Text>
+										</Box>
+									</Flex>
+									<Button
+										mode="bleed"
+										tone="critical"
+										icon={TrashIcon}
+										padding={2}
+										onClick={() => handleRemoveFile(file)}
+									/>
+								</Flex>
+							</Card>
+						);
+					})}
+				</Box>
+
+				{/* Add more files zone */}
 				<Box
 					onDragEnter={handleDragEnter}
 					onDragOver={handleDragOver}
@@ -433,21 +508,14 @@ export const BatchUploadFonts = () => {
 					</Flex>
 				</Box>
 
+				{/* Upload confirm */}
 				<Button
 					mode="ghost"
 					tone="primary"
-					width="fill"
 					icon={UploadIcon}
 					text={`Upload ${pendingFiles.length} Font${pendingFiles.length === 1 ? '' : 's'}`}
+					style={{ width: '100%' }}
 					onClick={handleConfirmUpload}
-				/>
-				<Button
-					mode="bleed"
-					tone="default"
-					width="fill"
-					fontSize={1}
-					text="Clear selection"
-					onClick={() => setPendingFiles([])}
 				/>
 			</Stack>
 		);
@@ -497,8 +565,8 @@ export const BatchUploadFonts = () => {
 										)}
 									</Flex>
 									{ready === 'rename'
-										? renderSpinner()
-										: <Button mode="ghost" width="fill" tone="primary" text="Rename Existing Fonts" onClick={handleRenameExistingFonts} disabled={ready !== true} />
+										? renderProcessing()
+										: <Button mode="ghost" tone="primary" text="Rename Existing Fonts" style={{ width: '100%' }} onClick={handleRenameExistingFonts} disabled={ready !== true} />
 									}
 								</Stack>
 
@@ -506,10 +574,10 @@ export const BatchUploadFonts = () => {
 								<Stack space={3}>
 									<Text size={1} weight="semibold" style={{ lineHeight: 1.6 }}>Update Font Prices</Text>
 									{ready === 'price'
-										? renderSpinner()
+										? renderProcessing()
 										: <Stack space={2}>
 											<PriceInput inputPrice={inputPrice} handleInputChange={handleInputChange} />
-											<Button mode="ghost" tone="primary" width="fill" text="Update All Font Prices" onClick={handleChangeFontPrice} disabled={ready !== true} />
+											<Button mode="ghost" tone="primary" text="Update All Font Prices" style={{ width: '100%' }} onClick={handleChangeFontPrice} disabled={ready !== true} />
 										</Stack>
 									}
 								</Stack>
@@ -519,8 +587,8 @@ export const BatchUploadFonts = () => {
 									<Text size={1} weight="semibold" style={{ lineHeight: 1.6 }}>Regenerate CSS</Text>
 									<Text size={1} muted style={{ lineHeight: 1.6 }}>Rebuilds the CSS @font-face files for all fonts in the typeface fonts list.</Text>
 									{ready === 'css'
-										? renderSpinner()
-										: <Button mode="ghost" tone="primary" width="fill" text="Regenerate CSS Files" onClick={handleRegenerateCssFiles} disabled={ready !== true} />
+										? renderProcessing()
+										: <Button mode="ghost" tone="primary" text="Regenerate CSS Files" style={{ width: '100%' }} onClick={handleRegenerateCssFiles} disabled={ready !== true} />
 									}
 								</Stack>
 
@@ -561,7 +629,7 @@ export const BatchUploadFonts = () => {
 										{pendingFiles.length === 0 ? renderDropZone() : renderFileList()}
 									</Box>
 								</>
-								: renderSpinner()
+								: renderProcessing()
 						)}
 					</Card>
 				</Stack>
