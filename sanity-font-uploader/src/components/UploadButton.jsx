@@ -1,7 +1,7 @@
 // Invisible-overlay file input styled as a Sanity UI primary button
 
 import React, { forwardRef } from 'react';
-import { Button, Text, Stack } from '@sanity/ui';
+import { Button, Text } from '@sanity/ui';
 
 /**
  * Primary button with a transparent full-size file input overlay.
@@ -12,14 +12,13 @@ import { Button, Text, Stack } from '@sanity/ui';
 const UploadButton = forwardRef(({ handleUpload }, ref) => {
 	return (
 		<Button
+			mode="ghost"
 			tone="primary"
+			width="fill"
 			padding={3}
 			style={{ position: 'relative' }}
 		>
-			<Stack space={2}>
-				<Text align="center">Upload (ttf/otf/woff/woff2/etc...)</Text>
-				<Text size={1} muted align="center">replaces existing fonts</Text>
-			</Stack>
+			<Text align="center">Upload (ttf/otf/woff/woff2/etc...)</Text>
 			<input
 				ref={ref}
 				type="file"

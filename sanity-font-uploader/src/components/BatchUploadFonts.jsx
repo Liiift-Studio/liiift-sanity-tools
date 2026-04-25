@@ -1,8 +1,8 @@
-// Batch font uploader with tabbed Upload / Utilities interface
+// Batch font uploader with Upload view and toggled Utilities panel
 
 import React, { useCallback, useState, useMemo } from 'react';
-import { Card, Box, Flex, Text, Label, Switch, Button, Tab, TabList, TabPanel, Spinner, Tooltip, Stack } from '@sanity/ui';
-import { ControlsIcon, UploadIcon, InfoOutlineIcon } from '@sanity/icons';
+import { Card, Box, Flex, Grid, Text, Label, Switch, Button, Spinner, Tooltip, Stack } from '@sanity/ui';
+import { ControlsIcon, InfoOutlineIcon } from '@sanity/icons';
 import { useFormValue } from 'sanity';
 
 import { useSanityClient } from '../hooks/useSanityClient';
@@ -26,7 +26,7 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 	const [error, setError] = useState(false);
 	const [preserveShortenedNames, setPreserveShortenedNames] = useState(true);
 	const [preserveFileNames, setPreserveFileNames] = useState(false);
-	const [tabId, setTabId] = useState('upload');
+	const [showUtilities, setShowUtilities] = useState(false);
 
 	const client = useSanityClient();
 
@@ -276,7 +276,7 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 		>
 			<Flex align="center" gap={1} style={{ cursor: 'default' }}>
 				<Label>{label}</Label>
-				<Text size={0} muted style={{ display: 'flex', alignItems: 'center' }}><InfoOutlineIcon /></Text>
+				<InfoOutlineIcon style={{ opacity: 0.5, display: 'block' }} />
 			</Flex>
 		</Tooltip>
 	);
@@ -293,70 +293,24 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 		<>
 			{title && title !== '' && slug && slug !== '' &&
 				<>
-					<TabList space={2} paddingBottom={3}>
-						<Tab
-							aria-controls="upload-panel"
-							icon={UploadIcon}
-							id="upload-tab"
-							label="Upload Fonts"
-							onClick={() => setTabId('upload')}
-							selected={tabId === 'upload'}
-							space={2}
-						/>
-						<Tab
-							aria-controls="utilities-panel"
-							icon={ControlsIcon}
-							id="utilities-tab"
-							label="Utilities"
-							onClick={() => setTabId('utilities')}
-							selected={tabId === 'utilities'}
-							space={2}
-						/>
-					</TabList>
+					<StatusDisplay
+						status={status}
+						error={error}
+						action={
+							<Button
+								mode={showUtilities ? 'default' : 'ghost'}
+								tone="primary"
+								icon={ControlsIcon}
+								text="Utilities"
+								fontSize={1}
+								padding={2}
+								onClick={() => setShowUtilities(v => !v)}
+							/>
+						}
+					/>
+
 					<Card border padding={2} shadow={1} radius={2}>
-						<StatusDisplay status={status} error={error} />
-
-						<TabPanel aria-labelledby="upload-tab" hidden={tabId !== 'upload'} id="upload-panel">
-							{ready
-								? <>
-									<Flex gap={4} marginTop={1} marginBottom={1} align="flex-start">
-										{/* Left: per Style price */}
-										<Box style={{ flexShrink: 0 }}>
-											<PriceInput inputPrice={inputPrice} handleInputChange={handleInputChange} />
-										</Box>
-										{/* Right: toggles */}
-										<Stack space={3} flex={1}>
-											<Flex align="center" gap={2}>
-												<Switch
-													checked={preserveShortenedNames}
-													onChange={(e) => setPreserveShortenedNames(e.target.checked)}
-												/>
-												{renderTooltipLabel(
-													'Preserve shortened names',
-													'Abbreviations in font names are kept as-is (e.g. "XNarrow" stays "XNarrow", "Bd" stays "Bd").'
-												)}
-											</Flex>
-											<Flex align="center" gap={2}>
-												<Switch
-													checked={preserveFileNames}
-													onChange={(e) => setPreserveFileNames(e.target.checked)}
-												/>
-												{renderTooltipLabel(
-													'Preserve file names',
-													'Original filename capitalisation is used for asset naming instead of the normalised font title.'
-												)}
-											</Flex>
-										</Stack>
-									</Flex>
-									<Box marginTop={3}>
-										<UploadButton ref={ref} handleUpload={handleUpload} />
-									</Box>
-								</>
-								: renderSpinner()
-							}
-						</TabPanel>
-
-						<TabPanel aria-labelledby="utilities-tab" hidden={tabId !== 'utilities'} id="utilities-panel">
+						{showUtilities ? (
 							<Stack space={4} marginTop={2}>
 
 								{/* Regenerate Subfamilies */}
@@ -389,12 +343,10 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 									<Text size={1} weight="semibold" style={{ lineHeight: 1.6 }}>Update Font Prices</Text>
 									{ready === 'price'
 										? renderSpinner()
-										: <Flex align="center" gap={3}>
-											<Box style={{ flex: 1 }}>
-												<PriceInput inputPrice={inputPrice} handleInputChange={handleInputChange} />
-											</Box>
-											<Button mode="ghost" tone="primary" text="Update All Font Prices" onClick={handleChangeFontPrice} disabled={ready !== true} />
-										</Flex>
+										: <Stack space={2}>
+											<PriceInput inputPrice={inputPrice} handleInputChange={handleInputChange} />
+											<Button mode="ghost" tone="primary" width="fill" text="Update All Font Prices" onClick={handleChangeFontPrice} disabled={ready !== true} />
+										</Stack>
 									}
 								</Stack>
 
@@ -409,7 +361,44 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 								</Stack>
 
 							</Stack>
-						</TabPanel>
+						) : (
+							ready
+								? <>
+									<Grid columns={[2]} gap={4} marginTop={1} marginBottom={1}>
+										{/* Left: price */}
+										<Box>
+											<PriceInput inputPrice={inputPrice} handleInputChange={handleInputChange} />
+										</Box>
+										{/* Right: toggles */}
+										<Stack space={3}>
+											<Flex align="center" gap={2}>
+												<Switch
+													checked={preserveShortenedNames}
+													onChange={(e) => setPreserveShortenedNames(e.target.checked)}
+												/>
+												{renderTooltipLabel(
+													'Preserve shortened names',
+													'Abbreviations in font names are kept as-is (e.g. "XNarrow" stays "XNarrow", "Bd" stays "Bd").'
+												)}
+											</Flex>
+											<Flex align="center" gap={2}>
+												<Switch
+													checked={preserveFileNames}
+													onChange={(e) => setPreserveFileNames(e.target.checked)}
+												/>
+												{renderTooltipLabel(
+													'Preserve file names',
+													'Original filename capitalisation is used for asset naming instead of the normalised font title.'
+												)}
+											</Flex>
+										</Stack>
+									</Grid>
+									<Box marginTop={3}>
+										<UploadButton ref={ref} handleUpload={handleUpload} />
+									</Box>
+								</>
+								: renderSpinner()
+						)}
 					</Card>
 				</>
 			}

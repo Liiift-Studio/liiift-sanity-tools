@@ -1,24 +1,25 @@
-// Inline price input: label + $ + number input on one row
+// Inline price input: Price + $ + input + "per style" on one row
 
 import React from 'react';
-import { Flex, Text, TextInput } from '@sanity/ui';
+import { Flex, Text } from '@sanity/ui';
 
 /**
- * Renders an inline per-style price field: "per Style price  $  [input]"
+ * Renders an inline price field: "Price  $  [input]  per style"
  * @param {Object} props
  * @param {string} props.inputPrice - Current price value
  * @param {Function} props.handleInputChange - onChange handler
  */
 const PriceInput = ({ inputPrice, handleInputChange }) => (
 	<Flex align="center" gap={2}>
-		<Text size={1} muted style={{ whiteSpace: 'nowrap' }}>per Style price</Text>
+		<Text size={1} muted>Price:</Text>
 		<Text size={1} muted>$</Text>
-		<TextInput
+		<input
 			value={inputPrice}
 			onChange={handleInputChange}
 			type="number"
-			style={{ maxWidth: '80px', textAlign: 'right' }}
+			style={{ textAlign: 'end', padding: '5px', maxWidth: '75px' }}
 		/>
+		<Text size={1} muted>per style</Text>
 	</Flex>
 );
 

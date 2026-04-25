@@ -2,6 +2,8 @@
 
 // Components
 export { BatchUploadFonts } from './components/BatchUploadFonts.jsx';
+export { GenerateCollectionsPairsComponent } from './components/GenerateCollectionsPairsComponent.jsx';
+export { UpdateScriptsComponent } from './components/UpdateScriptsComponent.jsx';
 export { SingleUploaderTool } from './components/SingleUploaderTool.jsx';
 export { RegenerateSubfamiliesComponent } from './components/RegenerateSubfamiliesComponent.jsx';
 export { UploadScriptsComponent } from './components/UploadScriptsComponent.jsx';
