@@ -1,7 +1,8 @@
 // Per-font file manager: upload/build/delete buttons for each font format
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Button, Stack, Flex, Box, Text } from '@sanity/ui';
+import { Button, Stack, Flex, Box, Text, Card } from '@sanity/ui';
+import { TrashIcon } from '@sanity/icons';
 import { useFormValue, set, unset } from 'sanity';
 import { Buffer } from 'buffer';
 import * as fontkit from 'fontkit';
@@ -21,7 +22,7 @@ import StatusDisplay from './StatusDisplay';
 
 /**
  * Font file manager rendered inside a font document.
- * Shows TTF/OTF/WOFF/WOFF2/EOT/SVG/CSS rows, each with Upload/Build/Delete controls.
+ * Shows TTF/OTF/WOFF/WOFF2/WEB/SUBSET/EOT/SVG/CSS/DATA rows with Upload/Build/Delete controls.
  * @param {Object} props
  * @param {Object} props.elementProps
  * @param {Function} props.onChange
@@ -47,9 +48,13 @@ export const SingleUploaderTool = (props) => {
 	const doc_slug = useFormValue(['slug']);
 	const doc_metaData = useFormValue(['metaData']);
 
+	// Fingerprinted web delivery and subset WOFF2 — stored as top-level document fields
+	const doc_woff2_web = useFormValue(['woff2_web']);
+	const doc_woff2_subset = useFormValue(['woff2_subset']);
+
 	const { weightKeywordList, italicKeywordList } = useMemo(() => generateStyleKeywords(), []);
 
-	useEffect(() => { handleSetFilenames(); }, [fileInput]);
+	useEffect(() => { handleSetFilenames(); }, [fileInput, doc_woff2_web, doc_woff2_subset]);
 
 	/** Fetches filenames for all uploaded font assets in a single GROQ request. */
 	const handleSetFilenames = useCallback(async () => {
@@ -61,6 +66,8 @@ export const SingleUploaderTool = (props) => {
 			fileInput?.eot?.asset?._ref,
 			fileInput?.svg?.asset?._ref,
 			fileInput?.css?.asset?._ref,
+			doc_woff2_web?.asset?._ref,
+			doc_woff2_subset?.asset?._ref,
 		].filter(Boolean);
 
 		if (assetIds.length === 0) { setFilenames({}); return; }
@@ -73,6 +80,8 @@ export const SingleUploaderTool = (props) => {
 		const fontNames = assetData.reduce((acc, cur) => {
 			if (cur.originalFilename.endsWith('.ttf')) acc.ttf = cur.originalFilename;
 			else if (cur.originalFilename.endsWith('.otf')) acc.otf = cur.originalFilename;
+			else if (cur.originalFilename.endsWith('.woff2') && cur._id === doc_woff2_web?.asset?._ref) acc.woff2_web = cur.originalFilename;
+			else if (cur.originalFilename.endsWith('.woff2') && cur._id === doc_woff2_subset?.asset?._ref) acc.woff2_subset = cur.originalFilename;
 			else if (cur.originalFilename.endsWith('.woff2')) acc.woff2 = cur.originalFilename;
 			else if (cur.originalFilename.endsWith('.woff')) acc.woff = cur.originalFilename;
 			else if (cur.originalFilename.endsWith('.eot')) acc.eot = cur.originalFilename;
@@ -82,19 +91,18 @@ export const SingleUploaderTool = (props) => {
 		}, {});
 
 		setFilenames(fontNames);
-	}, [fileInput, client]);
+	}, [fileInput, doc_woff2_web, doc_woff2_subset, client]);
 
 	/** Regenerates the @font-face CSS file from the stored woff2 asset. */
 	const handleGenerateCssFile = useCallback(async () => {
-		setMessage('Generating CSS: ' + doc_title + '.css');
-		setStatus('Generating CSS file');
+		setMessage('Building CSS: ' + doc_title + '.css');
+		setStatus('Building CSS file');
 		setError(false);
 
 		try {
 			const woff2AssetRef = fileInput?.woff2?.asset?._ref;
 			if (!woff2AssetRef) throw new Error('No woff2 file available');
 
-			// Parameterized — woff2AssetRef is a Sanity asset ID
 			const [woff2Asset] = await client.fetch(
 				`*[_id == $id]{ originalFilename, url }`,
 				{ id: woff2AssetRef }
@@ -112,14 +120,14 @@ export const SingleUploaderTool = (props) => {
 				client: client,
 			});
 
-			setMessage('CSS generated');
-			setStatus('CSS generated successfully');
+			setMessage('CSS built');
+			setStatus('CSS built successfully');
 			setTimeout(() => { setMessage(''); setStatus('ready'); }, 2000);
 			onChange(set(newFileInput));
 		} catch (err) {
-			console.error('Error generating CSS file:', err);
-			setMessage('Error generating CSS file: ' + err.message);
-			setStatus('Error generating CSS file');
+			console.error('Error building CSS file:', err);
+			setMessage('Error building CSS file: ' + err.message);
+			setStatus('Error building CSS file');
 			setError(true);
 			setTimeout(() => { setMessage(''); setStatus('ready'); setError(false); }, 3000);
 		}
@@ -127,8 +135,8 @@ export const SingleUploaderTool = (props) => {
 
 	/** Converts and uploads the source font file to one or more target formats. */
 	const handleGenerateFontFile = useCallback(async (code, sourceFile) => {
-		setMessage(`Generating ${code === 'all' ? 'all font files' : code + ' file'}...`);
-		setStatus(`Generating ${code === 'all' ? 'all font files' : code + ' file'}`);
+		setMessage(`Building ${code === 'all' ? 'all font files' : code + ' file'}...`);
+		setStatus(`Building ${code === 'all' ? 'all font files' : code + ' file'}`);
 		setError(false);
 
 		try {
@@ -148,13 +156,13 @@ export const SingleUploaderTool = (props) => {
 				client: client,
 			});
 
-			setMessage('Files generated');
-			setStatus('Files generated successfully');
+			setMessage('Files built');
+			setStatus('Files built successfully');
 			setTimeout(() => { setMessage(''); setStatus('ready'); }, 2000);
 		} catch (err) {
-			console.error('Error generating font files:', err);
-			setMessage('Error generating font files: ' + err.message);
-			setStatus('Error generating font files');
+			console.error('Error building font files:', err);
+			setMessage('Error building font files: ' + err.message);
+			setStatus('Error building font files');
 			setError(true);
 			setTimeout(() => { setMessage(''); setStatus('ready'); setError(false); }, 3000);
 		}
@@ -162,8 +170,8 @@ export const SingleUploaderTool = (props) => {
 
 	/** Re-extracts metadata from the stored TTF and regenerates font data fields. */
 	const handleGenerateFontData = useCallback(async () => {
-		setMessage('Generating font data...');
-		setStatus('Generating font data');
+		setMessage('Building font data...');
+		setStatus('Building font data');
 		setError(false);
 
 		try {
@@ -175,7 +183,6 @@ export const SingleUploaderTool = (props) => {
 				return;
 			}
 
-			// Parameterized — prevents injection from stored asset _ref values
 			const [ttfAsset] = await client.fetch(
 				`*[_id == $id]{ url }`,
 				{ id: fileInput.ttf.asset._ref }
@@ -217,13 +224,13 @@ export const SingleUploaderTool = (props) => {
 				}
 			}
 
-			setMessage('Font data generated successfully');
-			setStatus('Font data generated successfully');
+			setMessage('Font data built successfully');
+			setStatus('Font data built successfully');
 			setTimeout(() => { setMessage(''); setStatus('ready'); }, 2000);
 		} catch (err) {
-			console.error('Error generating font data:', err);
-			setMessage('Error generating font data: ' + err.message);
-			setStatus('Error generating font data');
+			console.error('Error building font data:', err);
+			setMessage('Error building font data: ' + err.message);
+			setStatus('Error building font data');
 			setError(true);
 			setTimeout(() => { setMessage(''); setStatus('ready'); setError(false); }, 3000);
 		}
@@ -253,8 +260,8 @@ export const SingleUploaderTool = (props) => {
 			setStatus(filename + ' uploaded successfully');
 
 			if (code === 'woff2') {
-				setMessage('Generating CSS: ' + doc_title + '.css');
-				setStatus('Generating CSS file');
+				setMessage('Building CSS: ' + doc_title + '.css');
+				setStatus('Building CSS file');
 				newFileInput = await generateCssFile({
 					woff2File: file,
 					fileInput: newFileInput,
@@ -265,8 +272,8 @@ export const SingleUploaderTool = (props) => {
 					style: doc_style || 'Normal',
 					client: client,
 				});
-				setMessage(doc_title + '.css generated');
-				setStatus('CSS file generated successfully');
+				setMessage(doc_title + '.css built');
+				setStatus('CSS file built successfully');
 			}
 
 			if (code === 'ttf') {
@@ -291,7 +298,7 @@ export const SingleUploaderTool = (props) => {
 		}
 	}, [fileInput, onChange, doc_title, doc_typefaceName, doc_variableFont, doc_weight, doc_slug, doc_id, client, weightKeywordList, italicKeywordList]);
 
-	/** Deletes a single font file asset and removes its reference from the document. */
+	/** Deletes a single fileInput font file asset. */
 	const handleDelete = useCallback(async (code) => {
 		try {
 			setMessage(`Deleting ${code} file...`);
@@ -316,6 +323,28 @@ export const SingleUploaderTool = (props) => {
 		}
 	}, [fileInput, onChange, client]);
 
+	/** Deletes a top-level document field asset (woff2_web, woff2_subset). */
+	const handleDeleteTopLevel = useCallback(async (fieldName, assetRef) => {
+		try {
+			setMessage(`Deleting ${fieldName}...`);
+			setStatus(`Deleting ${fieldName}`);
+			setError(false);
+
+			await client.patch(doc_id).unset([fieldName]).commit();
+			if (assetRef) await client.delete(assetRef);
+
+			setMessage(`${fieldName} deleted`);
+			setStatus(`${fieldName} deleted successfully`);
+			setTimeout(() => { setMessage(''); setStatus('ready'); }, 2000);
+		} catch (err) {
+			console.error(`Error deleting ${fieldName}:`, err);
+			setMessage('Error: ' + err.message);
+			setStatus(`Error deleting ${fieldName}`);
+			setError(true);
+			setTimeout(() => { setMessage(''); setStatus('ready'); setError(false); }, 3000);
+		}
+	}, [doc_id, client]);
+
 	/** Deletes all font file assets and resets all metadata fields. */
 	const handleDeleteAll = useCallback(async () => {
 		try {
@@ -338,13 +367,16 @@ export const SingleUploaderTool = (props) => {
 				variableFont: false,
 				weight: 400,
 				variableInstances: undefined,
-			}).commit();
+			}).unset(['woff2_web', 'woff2_subset']).commit();
 
-			for (const refKey of Object.keys(fileInput)) {
-				if (refKey === 'documentInfo') continue;
-				const asset = fileInput[refKey]?.asset?._ref;
-				if (!asset) continue;
-				try { await client.delete(asset); } catch (e) { console.error('Error deleting asset:', e.message); }
+			const allAssets = [
+				...Object.keys(fileInput).filter(k => k !== 'documentInfo').map(k => fileInput[k]?.asset?._ref),
+				doc_woff2_web?.asset?._ref,
+				doc_woff2_subset?.asset?._ref,
+			].filter(Boolean);
+
+			for (const assetRef of allAssets) {
+				try { await client.delete(assetRef); } catch (e) { console.error('Error deleting asset:', e.message); }
 			}
 
 			setMessage('All files and metadata deleted');
@@ -357,127 +389,171 @@ export const SingleUploaderTool = (props) => {
 			setError(true);
 			setTimeout(() => { setMessage(''); setStatus('ready'); setError(false); }, 3000);
 		}
-	}, [fileInput, value, doc_id, onChange, client]);
+	}, [fileInput, value, doc_id, doc_woff2_web, doc_woff2_subset, onChange, client]);
 
-	/** Renders an Upload/Build/Delete row for a given font format. */
+	/** Renders a bordered upload/build/delete row for a fileInput format. */
 	const renderFontSection = (format, buildSource = null) => {
 		const formatUpper = format.toUpperCase();
-		const hasFile = fileInput?.[format]?.asset?._ref;
+		const hasFile = !!fileInput?.[format]?.asset?._ref;
 		const fileUrl = hasFile
 			? `https://cdn.sanity.io/files/${process.env.SANITY_STUDIO_PROJECT_ID}/${process.env.SANITY_STUDIO_DATASET}/${fileInput[format].asset._ref.replace('file-', '').replace('-', '.')}`
 			: null;
 
 		return (
-			<Flex justify="space-between" align="center" wrap="wrap" gap={2}>
-				<Box style={{ flex: 1, minWidth: '200px' }}>
-					{!hasFile ? (
-						<Text size={1}>{formatUpper}:&nbsp;<strong>{filenames?.[format] || 'Empty'}</strong></Text>
-					) : (
-						<Text size={1}>
-							{formatUpper}:&nbsp;
-							<a href={fileUrl} target="_blank" rel="noreferrer">
-								<strong>{filenames?.[format] || 'File'}</strong>
-							</a>
+			<Card border radius={1} paddingX={2} paddingY={3}>
+				<Flex justify="space-between" align="center" gap={2}>
+					<Flex gap={3} align="center" style={{ flex: 1, minWidth: 0 }}>
+						<Text size={0} style={{ fontFamily: 'monospace', minWidth: '2.5rem', flexShrink: 0, opacity: hasFile ? 1 : 0.5 }}>
+							{formatUpper}
 						</Text>
-					)}
-				</Box>
-				<Flex gap={2} align="center">
+						{hasFile ? (
+							<Text size={1} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+								<a href={fileUrl} target="_blank" rel="noreferrer">{filenames?.[format] || 'File'}</a>
+							</Text>
+						) : (
+							<Text size={1} muted>—</Text>
+						)}
+					</Flex>
 					{status === 'ready' && (
-						<>
+						<Flex gap={1} align="center" style={{ flexShrink: 0 }}>
 							{buildSource && fileInput?.[buildSource] && (
-								<Button mode="default" tone="primary" onClick={() => handleGenerateFontFile(format, fileInput[buildSource])} text="Build" />
+								<Button mode="ghost" tone="primary" fontSize={1} padding={2} onClick={() => handleGenerateFontFile(format, fileInput[buildSource])} text="Build" />
 							)}
-							<Button as="label" mode="ghost" tone="primary" style={{ cursor: 'pointer' }}>
-								<Text>Upload</Text>
-								<input ref={ref} type="file" placeholder="Upload file" hidden onChange={(e) => handleUpload(e, format)} />
+							<Button as="label" mode="ghost" tone="primary" fontSize={1} padding={2} style={{ cursor: 'pointer' }}>
+								<Text size={1}>Upload</Text>
+								<input ref={ref} type="file" hidden onChange={(e) => handleUpload(e, format)} />
 							</Button>
-							{fileInput?.[format] && (
-								<Button mode="ghost" tone="critical" onClick={() => handleDelete(format)} text="×" />
+							{hasFile && (
+								<Button mode="bleed" tone="critical" icon={TrashIcon} padding={2} onClick={() => handleDelete(format)} />
 							)}
-						</>
+						</Flex>
 					)}
 				</Flex>
-			</Flex>
+			</Card>
 		);
 	};
 
+	/** Renders a read-only row for a top-level document asset field (woff2_web, woff2_subset). */
+	const renderTopLevelAssetSection = (label, fieldName, assetRef, filename) => {
+		const hasFile = !!assetRef;
+		const fileUrl = hasFile
+			? `https://cdn.sanity.io/files/${process.env.SANITY_STUDIO_PROJECT_ID}/${process.env.SANITY_STUDIO_DATASET}/${assetRef.replace('file-', '').replace('-', '.')}`
+			: null;
+
+		return (
+			<Card border radius={1} paddingX={2} paddingY={3} tone={hasFile ? 'transparent' : 'transparent'}>
+				<Flex justify="space-between" align="center" gap={2}>
+					<Flex gap={3} align="center" style={{ flex: 1, minWidth: 0 }}>
+						<Text size={0} style={{ fontFamily: 'monospace', minWidth: '2.5rem', flexShrink: 0, opacity: hasFile ? 1 : 0.5 }}>
+							{label}
+						</Text>
+						{hasFile ? (
+							<Text size={1} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+								<a href={fileUrl} target="_blank" rel="noreferrer">{filename || 'File'}</a>
+							</Text>
+						) : (
+							<Text size={1} muted>—</Text>
+						)}
+					</Flex>
+					{status === 'ready' && hasFile && (
+						<Flex gap={1} align="center" style={{ flexShrink: 0 }}>
+							<Button mode="bleed" tone="critical" icon={TrashIcon} padding={2} onClick={() => handleDeleteTopLevel(fieldName, assetRef)} />
+						</Flex>
+					)}
+				</Flex>
+			</Card>
+		);
+	};
+
+	/** Renders the CSS row — build-only, no direct upload. */
+	const renderCssSection = () => {
+		const hasFile = !!fileInput?.css?.asset?._ref;
+		const fileUrl = hasFile
+			? `https://cdn.sanity.io/files/${process.env.SANITY_STUDIO_PROJECT_ID}/${process.env.SANITY_STUDIO_DATASET}/${fileInput.css.asset._ref.replace('file-', '').replace('-', '.')}`
+			: null;
+
+		return (
+			<Card border radius={1} paddingX={2} paddingY={3}>
+				<Flex justify="space-between" align="center" gap={2}>
+					<Flex gap={3} align="center" style={{ flex: 1, minWidth: 0 }}>
+						<Text size={0} style={{ fontFamily: 'monospace', minWidth: '2.5rem', flexShrink: 0, opacity: hasFile ? 1 : 0.5 }}>
+							CSS
+						</Text>
+						{hasFile ? (
+							<Text size={1} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+								<a href={fileUrl} target="_blank" rel="noreferrer">{filenames?.css || 'File'}</a>
+							</Text>
+						) : (
+							<Text size={1} muted>—</Text>
+						)}
+					</Flex>
+					{status === 'ready' && (
+						<Flex gap={1} align="center" style={{ flexShrink: 0 }}>
+							{fileInput?.woff2 && (
+								<Button mode="ghost" tone="primary" fontSize={1} padding={2} onClick={() => handleGenerateCssFile()} text="Build" />
+							)}
+							{hasFile && (
+								<Button mode="bleed" tone="critical" icon={TrashIcon} padding={2} onClick={() => handleDelete('css')} />
+							)}
+						</Flex>
+					)}
+				</Flex>
+			</Card>
+		);
+	};
+
+	/** Renders the Data row — shows metadata version and build button. */
+	const renderDataSection = () => (
+		<Card border radius={1} paddingX={2} paddingY={3}>
+			<Flex justify="space-between" align="center" gap={2}>
+				<Flex gap={3} align="center" style={{ flex: 1, minWidth: 0 }}>
+					<Text size={0} style={{ fontFamily: 'monospace', minWidth: '2.5rem', flexShrink: 0, opacity: doc_metaData?.version ? 1 : 0.5 }}>
+						DATA
+					</Text>
+					{doc_metaData?.version ? (
+						<Text size={1}>v{doc_metaData.version} <Text as="span" size={1} muted>({doc_metaData.genDate})</Text></Text>
+					) : (
+						<Text size={1} muted>—</Text>
+					)}
+				</Flex>
+				{status === 'ready' && fileInput?.ttf && (
+					<Flex gap={1} align="center" style={{ flexShrink: 0 }}>
+						<Button mode="ghost" tone="primary" fontSize={1} padding={2} onClick={() => handleGenerateFontData()} text="Build" />
+					</Flex>
+				)}
+			</Flex>
+		</Card>
+	);
+
 	return (
-		<Stack space={3}>
-			<Box>
-				<StatusDisplay status={status} error={error} />
-			</Box>
+		<Stack space={2}>
+			<StatusDisplay status={status} error={error} />
 
 			{renderFontSection('ttf')}
 
 			{status === 'ready' && fileInput?.ttf && (
-				<Box>
-					<Button
-						mode="default"
-						tone="primary"
-						onClick={() => handleGenerateFontFile('all', fileInput.ttf)}
-						text="Regenerate Files/Data from TTF"
-						style={{ width: '100%' }}
-					/>
-				</Box>
+				<Button
+					mode="ghost"
+					tone="primary"
+					onClick={() => handleGenerateFontFile('all', fileInput.ttf)}
+					text="Regenerate Files / Data from TTF"
+					style={{ width: '100%' }}
+				/>
 			)}
 
 			{renderFontSection('otf', 'woff')}
 			{renderFontSection('woff', 'ttf')}
 			{renderFontSection('woff2', 'ttf')}
+			{renderTopLevelAssetSection('WEB', 'woff2_web', doc_woff2_web?.asset?._ref, filenames?.woff2_web)}
+			{renderTopLevelAssetSection('SUBSET', 'woff2_subset', doc_woff2_subset?.asset?._ref, filenames?.woff2_subset)}
 			{renderFontSection('eot', 'ttf')}
 			{renderFontSection('svg', 'ttf')}
+			{renderCssSection()}
+			{renderDataSection()}
 
-			{/* CSS row — Build only (no direct upload) */}
-			<Flex justify="space-between" align="center" wrap="wrap" gap={2}>
-				<Box style={{ flex: 1, minWidth: '200px' }}>
-					{!fileInput?.css?.asset?._ref ? (
-						<Text size={1}>CSS:&nbsp;<strong>{filenames?.css || 'Empty'}</strong></Text>
-					) : (
-						<Text size={1}>
-							CSS:&nbsp;
-							<a
-								href={`https://cdn.sanity.io/files/${process.env.SANITY_STUDIO_PROJECT_ID}/${process.env.SANITY_STUDIO_DATASET}/${fileInput.css.asset._ref.replace('file-', '').replace('-', '.')}`}
-								target="_blank"
-								rel="noreferrer"
-							>
-								<strong>{filenames?.css || 'File'}</strong>
-							</a>
-						</Text>
-					)}
-				</Box>
-				<Flex gap={2} align="center">
-					{status === 'ready' && (
-						<>
-							{value?.woff2 && <Button mode="default" tone="primary" onClick={() => handleGenerateCssFile()} text="Build" />}
-							{value?.css && <Button mode="ghost" tone="critical" onClick={() => handleDelete('css')} text="×" />}
-						</>
-					)}
-				</Flex>
-			</Flex>
-
-			{/* Data row */}
-			<Flex justify="space-between" align="center" wrap="wrap" gap={2}>
-				<Box style={{ flex: 1, minWidth: '200px' }}>
-					<Text size={1}>
-						Data:&nbsp;
-						{doc_metaData?.version
-							? <strong>v{doc_metaData.version} ({doc_metaData.genDate})</strong>
-							: <strong>Empty</strong>
-						}
-					</Text>
-				</Box>
-				<Flex gap={2} align="center">
-					{status === 'ready' && value?.ttf &&
-						<Button mode="default" tone="primary" onClick={() => handleGenerateFontData()} text="Generate" />
-					}
-				</Flex>
-			</Flex>
-
-			{status === 'ready' && (value?.ttf || value?.otf || value?.woff || value?.woff2) &&
-				<Box>
-					<Button mode="ghost" tone="critical" onClick={() => handleDeleteAll()} text="Delete All" style={{ width: '100%' }} />
-				</Box>
-			}
+			{status === 'ready' && (fileInput?.ttf || fileInput?.otf || fileInput?.woff || fileInput?.woff2) && (
+				<Button mode="ghost" tone="critical" onClick={() => handleDeleteAll()} text="Delete All" style={{ width: '100%' }} />
+			)}
 		</Stack>
 	);
 };

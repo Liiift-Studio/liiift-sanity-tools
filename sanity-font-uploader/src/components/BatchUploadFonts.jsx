@@ -387,10 +387,14 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 								{/* Update Font Prices */}
 								<Stack space={3}>
 									<Text size={1} weight="semibold" style={{ lineHeight: 1.6 }}>Update Font Prices</Text>
-									<PriceInput inputPrice={inputPrice} handleInputChange={handleInputChange} />
 									{ready === 'price'
 										? renderSpinner()
-										: <Button mode="ghost" tone="primary" width="fill" text="Update All Font Prices" onClick={handleChangeFontPrice} disabled={ready !== true} />
+										: <Flex align="center" gap={3}>
+											<Box style={{ flex: 1 }}>
+												<PriceInput inputPrice={inputPrice} handleInputChange={handleInputChange} />
+											</Box>
+											<Button mode="ghost" tone="primary" text="Update All Font Prices" onClick={handleChangeFontPrice} disabled={ready !== true} />
+										</Flex>
 									}
 								</Stack>
 
