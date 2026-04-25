@@ -1,7 +1,8 @@
 // Script font uploader: processes and uploads font files per writing system (e.g. Cyrillic, Greek, Arabic)
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, Flex, Grid, Stack, Text, TextInput, MenuButton, Menu, MenuItem, Select } from '@sanity/ui';
+import { Button, Card, Flex, Label, Select, Spinner, Stack, Text } from '@sanity/ui';
+import { UploadIcon } from '@sanity/icons';
 import * as fontkit from 'fontkit';
 import slugify from 'slugify';
 import { useSanityClient } from '../hooks/useSanityClient';
@@ -10,310 +11,246 @@ import { nanoid } from 'nanoid';
 import generateCssFile from '../utils/generateCssFile';
 import { generateStyleKeywords, reverseSpellingLookup } from '../utils/generateKeywords';
 import { SCRIPTS } from '../utils/utils';
+import StatusDisplay from './StatusDisplay';
 
 /**
- * Component for uploading and managing script variants of fonts
- * @param {Object} props - Component props
- * @param {Object} props.elementProps - Element properties including ref
- * @returns {JSX.Element} Upload interface for script variants
+ * Component for uploading and managing script variants of fonts.
+ * @param {Object} props
+ * @param {Object} props.elementProps
+ * @returns {JSX.Element}
  */
 export const UploadScriptsComponent = (props) => {
 
-    // Props and client initialization
-    const {elementProps: {ref}} = props;
-    const client = useSanityClient();
+	const { elementProps: { ref } } = props;
+	const client = useSanityClient();
 
-    // Component state
-    const [selectedScript, setSelectedScript] = useState(""); // Currently selected script
-    const [status, setStatus] = React.useState(''); // Upload status message
-    const [ready, setReady] = React.useState(true); // Component ready state
+	const [selectedScript, setSelectedScript] = useState('');
+	const [status, setStatus] = useState('');
+	const [ready, setReady] = useState(true);
+	const [error, setError] = useState(false);
 
-    // Form values from Sanity
-    let doc_id = useFormValue(['_id']); // Document ID
-    const title = useFormValue(['title']); // Typeface title
-    const slug = useFormValue(['slug']); // URL slug
-    const scripts = useFormValue(['scripts']) || []; // Supported scripts
-    const stylesObject = useFormValue(['styles']); // Font styles data
-    let subfamiliesArray = stylesObject?.subfamilies || []; // Font subfamilies
+	let doc_id = useFormValue(['_id']);
+	const title = useFormValue(['title']);
+	const slug = useFormValue(['slug']);
+	const scripts = useFormValue(['scripts']) || [];
+	const stylesObject = useFormValue(['styles']);
+	let subfamiliesArray = stylesObject?.subfamilies || [];
 
-    // Memoized style keywords for font processing
-    const {weightKeywordList, italicKeywordList} = useMemo(() =>
-        generateStyleKeywords()
-    , []);
+	const { weightKeywordList, italicKeywordList } = useMemo(() => generateStyleKeywords(), []);
 
-    /**
-     * Reads a font file and returns its content as a Uint8Array
-     * @param {File} file - The font file to read
-     * @returns {Promise<Uint8Array>} Font file content
-     */
-    const readFontFile = (file) => {
+	/**
+	 * Reads a font file and returns its content as a Uint8Array.
+	 * @param {File} file
+	 * @returns {Promise<Uint8Array>}
+	 */
+	const readFontFile = (file) => {
 		return new Promise((resolve, reject) => {
 			const reader = new FileReader();
-
-			reader.onload = (event) => {
-				resolve(new Uint8Array(event.target.result));
-			};
-
+			reader.onload = (event) => { resolve(new Uint8Array(event.target.result)); };
 			reader.onerror = (error) => { reject(error); };
 			reader.readAsArrayBuffer(file);
 		});
 	};
 
+	/**
+	 * Handles the upload and processing of font files for a specific script.
+	 * @param {Event} event
+	 * @param {string} script
+	 */
+	const handleUpload = useCallback(async (event, script) => {
+		setReady(false);
+		setError(false);
+		try {
+			let failedFiles = [];
+			setStatus('Uploading font files...');
 
-    /**
-     * Handles the upload and processing of font files for a specific script
-     * @param {Event} event - The file input change event
-     * @param {string} script - The selected script variant (e.g., 'cyrillic', 'greek')
-     */
-    const handleUpload = useCallback(async(event, script) => {
-        setReady(false);
-        try{
-            let failedFiles = [];
+			if (!title) {
+				console.error('Typeface needs a title');
+				setStatus('Typeface needs a title');
+				setError(true);
+				setReady(true);
+				return;
+			}
 
-            console.log('handle upload ', title, script );
-            setStatus('uploading fonts files.. ');
+			let fontRefs = [];
+			let variableRefs = [];
+			let subfamilies = {};
+			let fontsObjects = {};
 
-            if(!title) {
-                console.error('typeface needs title');
-                return;
-            }
+			for (var i = 0; i < event.target.files.length; i++) {
 
-            let fontRefs = [];
-            let variableRefs = [];
-            let subfamilies = {};
-            let fontsObjects = {};
+				const file = event.target.files[i];
+				const fontBuffer = await readFontFile(file);
+				const font = fontkit.create(fontBuffer);
 
-            // read font files ,
-            // create if doesnt exist - create sanity fontObjects template
-            // add font file to sanity font
-            // create subfamily list
-            for(var i = 0 ; i < event.target.files.length ; i++ ){
-
-                const file = event.target.files[i];
-                const fontBuffer = await readFontFile(file);
-                const font = fontkit.create(fontBuffer);
-
-                console.log('reading font : ', font.fullName +' '+file.name, font.name.records);
-
-                let weightName = font?.name?.records?.preferredSubfamily ? font?.name?.records?.preferredSubfamily: font?.name?.records?.fontSubfamily;
-                weightName = weightName?.en ? weightName.en: weightName.constructor == Object ? weightName[Object.keys(weightName)[0]] : weightName;
-				weightName = weightName?.replace("Italic", "").replace("It", "").trim();
+				let weightName = font?.name?.records?.preferredSubfamily ? font?.name?.records?.preferredSubfamily : font?.name?.records?.fontSubfamily;
+				weightName = weightName?.en ? weightName.en : weightName.constructor == Object ? weightName[Object.keys(weightName)[0]] : weightName;
+				weightName = weightName?.replace('Italic', '').replace('It', '').trim();
 
 				if ((weightName == '' || weightName.toLowerCase() == 'roman') && font?.name?.records?.fullName) {
 					weightName = font?.name?.records?.fullName;
-					weightName = weightName?.en ? weightName.en: weightName.constructor == Object ? weightName[Object.keys(weightName)[0]] : weightName;
-					weightName = weightName?.replace(title + " ", "").replace(title, "").trim();
-					weightName = weightName?.replace("Italic", "").replace("It", "").trim();
+					weightName = weightName?.en ? weightName.en : weightName.constructor == Object ? weightName[Object.keys(weightName)[0]] : weightName;
+					weightName = weightName?.replace(title + ' ', '').replace(title, '').trim();
+					weightName = weightName?.replace('Italic', '').replace('It', '').trim();
 				}
 
-                let variableFont = font?.variationAxes && Object.keys(font.variationAxes).length > 0 ? true: false;
-                let subfamilyName = font.familyName.toLowerCase().trim().replace(title.toLowerCase().trim(),'').trim();
-                let fontTitle = font?.fullName;
-                let style = (font?.italicAngle !== 0 || font?.fullName.toLowerCase().includes('italic')) ? 'Italic' : 'Regular';
+				let variableFont = font?.variationAxes && Object.keys(font.variationAxes).length > 0 ? true : false;
+				let subfamilyName = font.familyName.toLowerCase().trim().replace(title.toLowerCase().trim(), '').trim();
+				let fontTitle = font?.fullName;
+				let style = (font?.italicAngle !== 0 || font?.fullName.toLowerCase().includes('italic')) ? 'Italic' : 'Regular';
 
-                if(fontTitle.toLowerCase().trim().includes(script)){
-                    fontTitle = fontTitle.toLowerCase().trim().replace(script, '').trim();
-                    fontTitle = fontTitle.split(' ').map( word => {
-                        if( word == '') return
-                        return word;
-                    })
-                    .filter( word => word != undefined)
-                    .join(' ');
-                }
+				if (fontTitle.toLowerCase().trim().includes(script)) {
+					fontTitle = fontTitle.toLowerCase().trim().replace(script, '').trim();
+					fontTitle = fontTitle.split(' ').map(word => {
+						if (word == '') return;
+						return word;
+					})
+						.filter(word => word != undefined)
+						.join(' ');
+				}
 
-                // remove weight and italic keywords from subfamily name
-                weightKeywordList.forEach( keyword => {
-                    const kw = keyword.trim();
-                    if(subfamilyName.includes(kw)) subfamilyName = subfamilyName.replace(kw, '').trim();
-
-                    // if(fontTitle.includes(kw)){
-                    //     fontTitle = fontTitle.replace(kw, '');
-                    // }
-                });
+				weightKeywordList.forEach(keyword => {
+					const kw = keyword.trim();
+					if (subfamilyName.includes(kw)) subfamilyName = subfamilyName.replace(kw, '').trim();
+				});
 
 				let italicKW = [];
-                italicKeywordList.forEach( keyword => {
-                    const kw = keyword.toLowerCase().trim();
-                    if(subfamilyName.includes(kw)){
-                        subfamilyName = subfamilyName.replace(kw, '');
-                    }
-
-                    if(fontTitle.includes(kw)){
-                        fontTitle = fontTitle.replace(kw, '');
+				italicKeywordList.forEach(keyword => {
+					const kw = keyword.toLowerCase().trim();
+					if (subfamilyName.includes(kw)) {
+						subfamilyName = subfamilyName.replace(kw, '');
+					}
+					if (fontTitle.includes(kw)) {
+						fontTitle = fontTitle.replace(kw, '');
 						italicKW.push(kw.charAt(0).toUpperCase() + kw.slice(1));
-
-                    }
-                });
+					}
+				});
 
 				fontTitle = fontTitle.replace(/-/g, ' ');
-                fontTitle = fontTitle.trim().split(' ').map( word => word[0].toUpperCase() + word.slice(1)).join(' ');
+				fontTitle = fontTitle.trim().split(' ').map(word => word[0].toUpperCase() + word.slice(1)).join(' ');
 
-                if(subfamilyName.trim().includes(script)){
-                    subfamilyName = subfamilyName.trim().replace(script, '').trim();
-                }
+				if (subfamilyName.trim().includes(script)) {
+					subfamilyName = subfamilyName.trim().replace(script, '').trim();
+				}
 
-                subfamilyName = subfamilyName.trim();
-                subfamilyName = (subfamilyName == '' ) ? 'Regular' : subfamilyName.split(' ').map( word => word[0].toUpperCase() + word.slice(1)).join(' ');
+				subfamilyName = subfamilyName.trim();
+				subfamilyName = (subfamilyName == '') ? 'Regular' : subfamilyName.split(' ').map(word => word[0].toUpperCase() + word.slice(1)).join(' ');
 
-				// remove subfamily from weight name
-				if (subfamilyName !== '' ) {
+				if (subfamilyName !== '') {
 					weightName = weightName
 						.replace(`${subfamilyName} `, '')
 						.replace(` ${subfamilyName}`, '')
 						.trim();
 				}
 
-                if(variableFont && !fontTitle.toLowerCase().trim().endsWith(' vf')) fontTitle = fontTitle + ' VF';
+				if (variableFont && !fontTitle.toLowerCase().trim().endsWith(' vf')) fontTitle = fontTitle + ' VF';
 
-                if(italicKW.length > 0){
-                    italicKW = italicKW.map( item => reverseSpellingLookup(item)); // replace each item in the italicKW list with the value in reverseSpellingLookup
-                    fontTitle = fontTitle + italicKW.join(' ');
-                    style = 'Italic';
-                }
+				if (italicKW.length > 0) {
+					italicKW = italicKW.map(item => reverseSpellingLookup(item));
+					fontTitle = fontTitle + italicKW.join(' ');
+					style = 'Italic';
+				}
 
-                let id = slugify(fontTitle.toLowerCase().trim());
+				let id = slugify(fontTitle.toLowerCase().trim());
 
-				console.log('=== Font Info ====');
-				console.log(' ')
-				console.log('font id : ', id);
-				console.log('font title : ', fontTitle);
-				console.log('fontkit fullName : ', font.fullName );
-				console.log('fontkit family name: ', font.familyName);
-				console.log('file name : ', file.name);
-				console.log('subfamily : ', subfamilyName);
-				console.log('style : ', style);
-				console.log('weight : ', weightName);
-				console.log('variable : ', variableFont);
-				console.log('italicKW ', italicKW);
-                console.log(' ')
-				console.log('=======');
+				subfamilies[id] = subfamilyName;
 
-                subfamilies[id] = subfamilyName; // add subfamily to list
+				if (fontsObjects[id]) {
+					fontsObjects[id].files = [...fontsObjects[id].files, file];
+				} else {
+					let fontObject = {
+						_key: nanoid(),
+						_id: id,
+						title: fontTitle,
+						slug: { _type: 'slug', current: id },
+						typefaceName: title,
+						style: (font?.italicAngle !== 0 || font?.fullName.toLowerCase().includes('italic')) ? 'Italic' : 'Regular',
+						variableFont: variableFont,
+						weightName: weightName,
+						normalWeight: true,
+						weight: font['OS/2']?.usWeightClass ? Number(font['OS/2']?.usWeightClass) :
+							/hairline|extra thin|extrathin/.test(weightName?.toLowerCase()) ? 100 :
+							/thin|extra light|extralight/.test(weightName?.toLowerCase()) ? 200 :
+							/light|book/.test(weightName?.toLowerCase()) ? 300 :
+							/regular|normal/.test(weightName?.toLowerCase()) ? 400 :
+							/medium/.test(weightName?.toLowerCase()) ? 500 :
+							/semi bold|semibold/.test(weightName?.toLowerCase()) ? 600 :
+							/extra bold|extrabold/.test(weightName?.toLowerCase()) ? 800 :
+							/bold/.test(weightName?.toLowerCase()) ? 700 :
+							/black|ultra/.test(weightName?.toLowerCase()) ? 900 :
+							400,
+						files: [file],
+						fontKit: font,
+						scriptFileInput: { [script]: {} },
+					};
+					fontsObjects[id] = fontObject;
+				}
+			}
 
-                if( fontsObjects[id]){
-                    fontsObjects[id].files = [...fontsObjects[id].files, file];
-                } else {
-                    let fontObject = {
-                        _key: nanoid(),
-                        _id: id,
-                        title: fontTitle,
-                        slug: {_type:'slug', current:id},
-                        typefaceName: title, // Change to match Typeface Document
-                        style: (font?.italicAngle !== 0 || font?.fullName.toLowerCase().includes('italic')) ? 'Italic' : 'Regular',
-                        variableFont: variableFont,
-                        weightName: weightName,
-                        normalWeight:true, // TODO : check if weight is normal ??
-                        weight: font['OS/2']?.usWeightClass ? Number(font['OS/2']?.usWeightClass) :
-                            /hairline|extra thin|extrathin/.test(weightName?.toLowerCase()) ? 100 :
-                            /thin|extra light|extralight/.test(weightName?.toLowerCase()) ? 200 :
-                            /light|book/.test(weightName?.toLowerCase()) ? 300 :
-                            /regular|normal/.test(weightName?.toLowerCase()) ? 400 :
-                            /medium/.test(weightName?.toLowerCase()) ? 500 :
-                            /semi bold|semibold/.test(weightName?.toLowerCase()) ? 600 :
-                            /bold/.test(weightName?.toLowerCase()) ? 700 :
-                            /extra bold|extrabold/.test(weightName?.toLowerCase()) ? 800 :
-                            /black|ultra/.test(weightName?.toLowerCase()) ? 900 :
-                            400,
-                        files : [file],
-                        fontKit: font,
-                        scriptFileInput: {[script]:{}},
-                    };
-                    fontsObjects[id] = fontObject;
-                }
-            }
+			let uniqueSubfamiles = [...new Set(Object.values(subfamilies))];
 
-            // Extract unique subfamily names and prepare for processing
-            let uniqueSubfamiles = [...new Set(Object.values(subfamilies))];
+			for (var i = 0; i < Object.keys(fontsObjects).length; i++) {
 
-            console.log('Subfamilies : ', subfamilies, uniqueSubfamiles, uniqueSubfamiles.length);
-            console.log('fontsObjects : ', fontsObjects);
+				let id = Object.keys(fontsObjects)[i];
+				let fontObject = fontsObjects[id];
+				let files = fontObject.files;
+				let newFileInput = fontObject.scriptFileInput[script];
 
-            // Process each font object:
-            // 1. Upload font files as Sanity assets
-            // 2. Create file references linking fonts to assets
-            // 3. Generate CSS for web fonts
-            for(var i = 0 ; i < Object.keys(fontsObjects).length ; i++ ){
+				if (uniqueSubfamiles.length > 1) fontObject.subfamily = subfamilies[id];
+				else fontObject.subfamily = '';
 
-                let id = Object.keys(fontsObjects)[i];
-                let fontObject = fontsObjects[id];
-                let files = fontObject.files;
-                let newFileInput = fontObject.scriptFileInput[script];
+				fontObject.price = process.env.SANITY_STUDIO_DEFAULT_STYLE_PRICE || 40;
+				if (fontObject.price > 0) fontObject.sell = true;
 
-                console.log(fontObject.title , ' : subfamily : ', subfamilies[id]);
+				for (var j = 0; j < files.length; j++) {
+					let file = files[j];
+					let fileType = '';
+					if (file.name.endsWith('.otf')) fileType = 'otf';
+					else if (file.name.endsWith('.ttf')) fileType = 'ttf';
+					else if (file.name.endsWith('.woff')) fileType = 'woff';
+					else if (file.name.endsWith('.woff2')) fileType = 'woff2';
+					else if (file.name.endsWith('.eot')) fileType = 'eot';
+					else if (file.name.endsWith('.svg')) fileType = 'svg';
 
-                // add subfamily to font object if more than one exists
-                if(uniqueSubfamiles.length > 1) fontObject.subfamily = subfamilies[id];
-                else fontObject.subfamily = '';
+					const filename = fontObject._id + '-' + script;
+					let fontTitle = fontObject.title + ' ' + script;
+					fontTitle = fontTitle.split(' ').map(word => word[0].toUpperCase() + word.slice(1)).join(' ');
 
-                // add price to font object - set sell = true if there is a price > 0
-                fontObject.price = process.env.SANITY_STUDIO_DEFAULT_STYLE_PRICE || 40;
-                if(fontObject.price > 0) fontObject.sell = true;
+					let baseAsset = await client.assets.upload('file', file, { filename: filename + '.' + fileType })
+						.catch(err => {
+							console.error('Error uploading font:', fontObject.title, err.message);
+							setStatus('Error uploading font: ' + err.message);
+							setError(true);
+						});
 
-                // upload files
-                for(var j = 0 ; j < files.length ; j++ ){
-                    let file = files[j];
-                    let fileType = "";
-                    if ( file.name.endsWith('.otf') ) 	 	fileType = "otf"
-                    else if ( file.name.endsWith('.ttf') ) 	 fileType = "ttf"
-                    else if ( file.name.endsWith('.woff') )  fileType = "woff"
-                    else if ( file.name.endsWith('.woff2') ) fileType = "woff2"
-                    else if ( file.name.endsWith('.eot') ) 	 fileType = "eot"
-                    else if ( file.name.endsWith('.svg') ) 	 fileType = "svg"
+					newFileInput[fileType] = {
+						_type: 'file',
+						asset: { _ref: baseAsset._id, _type: 'reference' },
+					};
 
-                    console.log('uploading font file : ', fontObject._id+'.'+fileType);
-                    const filename = fontObject._id+'-'+script;
-                    let fontTitle = fontObject.title+' '+script;
-                    fontTitle = fontTitle.split(' ').map( word => word[0].toUpperCase() + word.slice(1)).join(' ');
+					if (file.name.endsWith('.woff2')) {
+						setStatus('Generating CSS for: ' + fontObject.title);
+						newFileInput = await generateCssFile({
+							woff2File: file,
+							fileInput: newFileInput,
+							fontName: fontTitle,
+							fileName: filename,
+							variableFont: fontObject.variableFont,
+							weight: fontObject.weight,
+							client: client,
+						});
+					}
 
-                    let baseAsset = await client.assets.upload('file', file, { filename: filename+'.'+fileType })
-                        .catch( err => {
-                            console.error('error uploading font: ', fontObject.title);
-                            setStatus('error uploading font ' + err.message);
-                        });
+					fontObject.scriptFileInput[script] = newFileInput;
+					fontsObjects[id] = fontObject;
+				}
+			}
 
-                    // create file ref from font
-                    newFileInput[fileType] = {
-                        _type: 'file',
-                        asset: {
-                            _ref: baseAsset._id,
-                            _type: 'reference'
-                        }
-                    }
+			for (var i = 0; i < Object.keys(fontsObjects).length; i++) {
+				let fontId = Object.keys(fontsObjects)[i];
+				let font = fontsObjects[fontId];
 
-                    console.log('newFileInput', newFileInput);
-
-                    // generate css
-                    if(file.name.endsWith('.woff2')){
-                        console.log('generating css file for: ', fontObject.title);
-                        setStatus('generating css file for: ' + fontObject.title);
-                        newFileInput = await generateCssFile({
-                            woff2File: file,
-                            fileInput: newFileInput,
-                            // script: script,
-                            fontName: fontTitle,
-                            fileName: filename,
-                            variableFont: fontObject.variableFont,
-                            weight: fontObject.weight,
-                            client: client,
-                        });
-                    }
-
-                    fontObject.scriptFileInput[script] = newFileInput;
-                    fontsObjects[id] = fontObject;
-
-                }
-            }
-
-            console.log('creating sanity fonts', fontsObjects);
-
-
-            // create (with existing data if exists ) fonts and refs (for typeface)
-            for(var i = 0 ; i < Object.keys(fontsObjects).length ; i++ ){
-                let fontId = Object.keys(fontsObjects)[i];
-                let font = fontsObjects[fontId];
-
-                // add existing file refs to new file input
-                let existingFont = await client.fetch(
+				let existingFont = await client.fetch(
 					`*[_type == 'font' && _id == $fontId]{
 						fileInput,
 						description,
@@ -327,211 +264,184 @@ export const UploadScriptsComponent = (props) => {
 					{ fontId: font._id }
 				);
 
-                existingFont = existingFont[0];
+				existingFont = existingFont[0];
 
-                let fontResponse;
+				let fontResponse;
 				let files = font.files;
 				let fontKit = font.fontKit;
 				delete font.files;
 				delete font.fontKit;
 
-                console.log('creating font : ', font);
-
-				try{
-                    if(existingFont && existingFont != null){
-
-                        if(existingFont.scriptFileInput && existingFont.scriptFileInput != null){
-                            let newFileInput = {...font.scriptFileInput};
-
-                            Object.keys(existingFont.scriptFileInput).forEach( key => {
-                                if(!newFileInput[key]){
-                                    newFileInput[key] = existingFont.scriptFileInput[key];
-                                }
-                            });
-                            font.scriptFileInput = newFileInput;
-                        }
-
-                        fontResponse = await client.patch(font._id).set({ scriptFileInput: font.scriptFileInput }).commit()
-
-                    } else{
-                        fontResponse = await client.createOrReplace({
-                            _key: nanoid(),
-                            _id: font._id,
-                            _type: 'font',
-                            ...font,
-                        });
-                    }
-				}
-				catch(e){
-					console.error('error creating font: ', font.title, font.subfamily);
-					failedFiles = [...failedFiles, ...(files.map(file=>{return{name:file.name, fk: fontKit}}))];
+				try {
+					if (existingFont && existingFont != null) {
+						if (existingFont.scriptFileInput && existingFont.scriptFileInput != null) {
+							let newFileInput = { ...font.scriptFileInput };
+							Object.keys(existingFont.scriptFileInput).forEach(key => {
+								if (!newFileInput[key]) newFileInput[key] = existingFont.scriptFileInput[key];
+							});
+							font.scriptFileInput = newFileInput;
+						}
+						fontResponse = await client.patch(font._id).set({ scriptFileInput: font.scriptFileInput }).commit();
+					} else {
+						fontResponse = await client.createOrReplace({
+							_key: nanoid(),
+							_id: font._id,
+							_type: 'font',
+							...font,
+						});
+					}
+				} catch (e) {
+					console.error('Error creating font:', font.title, font.subfamily, e.message);
+					failedFiles = [...failedFiles, ...(files.map(file => ({ name: file.name, fk: fontKit })))];
 					continue;
 				}
 
+				const fontRef = { _key: nanoid(), _type: 'reference', _ref: fontResponse._id, _weak: true };
 
-                // Create font refs for typeface
-                // add to fontRef array or variableRef array
+				if (!font.variableFont) {
+					if (stylesObject.fonts && stylesObject.fonts.length > 0) {
+						let fontExists = stylesObject.fonts.findIndex(font => font._ref == fontResponse._id);
+						let inFontRefs = fontRefs.findIndex(font => font._ref == fontResponse._id);
+						if (fontExists == -1 && inFontRefs == -1) fontRefs.push(fontRef);
+					} else {
+						fontRefs.push(fontRef);
+					}
+				}
 
-                const fontRef = {_key: nanoid(), _type:'reference', _ref: fontResponse._id, _weak: true };
-
-                console.log('font response : ', fontResponse);
-                console.log('existing styles object : ', stylesObject);
-
-                // add new font refs for typeface
-                if(!font.variableFont){
-                    if(stylesObject.fonts && stylesObject.fonts.length > 0){
-                        let fontExists = stylesObject.fonts.findIndex( font => font._ref == fontResponse._id);
-                        let inFontRefs = fontRefs.findIndex( font => font._ref == fontResponse._id);
-                        if(fontExists == -1 && inFontRefs == -1){
-                            fontRefs.push(fontRef);
-                        }
-                    } else {
-                        fontRefs.push(fontRef);
-                    }
-                }
-
-                // add new font refs for typeface (variable)
-                if(font.variableFont){
-                    if(stylesObject.variableFont && stylesObject.variableFont.length > 0){
-                        let vfExists = stylesObject.variableFont.findIndex( font => font._ref == fontResponse._id);
-                        let inVariableRefs = variableRefs.findIndex( font => font._ref == fontResponse._id);
-                        if( vfExists == -1 && inVariableRefs == -1 && font.variableFont){
-                            variableRefs.push(fontRef);
-                        }
-                    } else {
-                        variableRefs.push(fontRef);
-                    }
-                }
-
-                console.log(fontResponse._id, ' created!');
-            }
-
-            // Update Sanity typeface document with new font references
-            console.log('updating styles refs (fonts, variable fonts, subfamilies) ', fontRefs, variableRefs, subfamilies, uniqueSubfamiles)
-            setStatus('Updating font references...');
-
-            let newStylesObject = stylesObject.fonts ?
-                { ...stylesObject, fonts : [...stylesObject.fonts, ...fontRefs] }
-            :
-                { ...stylesObject, fonts : [...fontRefs] };
-
-            if(uniqueSubfamiles.length > 1){
-                newStylesObject.subfamilies = uniqueSubfamiles;
-            }
-            else{
-                newStylesObject.subfamilies = [];
-            }
-
-            newStylesObject.variableFont = stylesObject?.variableFont ? [...stylesObject?.variableFont, ...variableRefs] : [...variableRefs];
-
-            let patch = {styles:newStylesObject};
-
-            subfamiliesArray = subfamiliesArray ? subfamiliesArray : [];
-
-            console.log('new styles obj : ', newStylesObject);
-            console.log('existing subfamily list : ', subfamiliesArray);
-            console.log('unique subfamilies ', uniqueSubfamiles);
-
-            subfamiliesArray = [...subfamiliesArray, ...uniqueSubfamiles].filter((sf, index, self) => {
-                return self.indexOf(sf) === index;
-            });
-
-            patch.styles.subfamilies = subfamiliesArray;
-
-            console.log('doc_id : ',doc_id);
-            console.log('typeface patch : ',patch);
-
-            let includedScripts = [ script, ...scripts].filter((lang, index, self) => {
-                return self.indexOf(lang) === index;
-            });
-
-            patch.scripts = includedScripts;
-
-            console.log('included scripts : ', includedScripts);
-
-
-            if( doc_id.startsWith('drafts.')){
-                await client.patch(doc_id).set(patch).commit()
-                    .catch(err => {
-                        console.error('error patching styles: ', err.message);
-                        setStatus('error patching styles '+ err.message);
-                    });
-                doc_id = doc_id.replace('drafts.','');
-            }
-
-            await client.patch(doc_id).set(patch).commit()
-                .catch(err => {
-                    console.error('error patching styles: ', err.message);
-                    setStatus('error patching styles');
-                });
-
-            console.log('success');
-
-            if(failedFiles.length > 0){
-				console.log('failed files : ', failedFiles);
-				const names = failedFiles.map( file => file.name);
-				console.log('names : ', failedFiles.map( file => file?.fk?.name?.records));
-				setStatus('fonts uploaded with errors. Failed files : '+ names.join(', '));
-			} else {
-				setStatus('fonts uploaded!');
+				if (font.variableFont) {
+					if (stylesObject.variableFont && stylesObject.variableFont.length > 0) {
+						let vfExists = stylesObject.variableFont.findIndex(font => font._ref == fontResponse._id);
+						let inVariableRefs = variableRefs.findIndex(font => font._ref == fontResponse._id);
+						if (vfExists == -1 && inVariableRefs == -1 && font.variableFont) variableRefs.push(fontRef);
+					} else {
+						variableRefs.push(fontRef);
+					}
+				}
 			}
-            setStatus('fonts uploaded!');
-        } catch(e){
-            console.error(e);
-            setStatus('error uploading font '+e.message);
-        }
-        setReady(true);
 
-    },[title, slug, doc_id]);
+			setStatus('Updating font references...');
 
-    // Render component UI
-    return (
-        <Stack>
-            {/* Display status message when processing */}
-            {!ready &&
-                <Text><br/>{status}<br/><br/></Text>
-            }
+			let newStylesObject = stylesObject.fonts
+				? { ...stylesObject, fonts: [...stylesObject.fonts, ...fontRefs] }
+				: { ...stylesObject, fonts: [...fontRefs] };
 
-            {/* Display upload interface when ready */}
-            {ready &&
-                <Stack>
-                    <Grid columns={!!(selectedScript && selectedScript !== "") ? 2 : 1} gap={2}>
-                        {/* Script selection dropdown */}
-                        <Select
-                            id="menu-button-example"
-                            onChange={(e)=>setSelectedScript(e.target.value)}
-                        >
-                            <option key={'script-none'} value={""}> </option>
-                            {SCRIPTS.map((script,i) =>
-                                <option key={'script-'+i} value={script}>
-                                    {script[0]?.toUpperCase()+script.slice(1)}
-                                </option>
-                            )}
-                        </Select>
+			if (uniqueSubfamiles.length > 1) {
+				newStylesObject.subfamilies = uniqueSubfamiles;
+			} else {
+				newStylesObject.subfamilies = [];
+			}
 
-                        {/* File upload button - only shown when script is selected */}
-                        {!!(selectedScript && selectedScript !== "") &&
-                            <>
-                                <label htmlFor="upload-scripts-file">
-                                    <Button
-                                        style={{pointerEvents: "none"}}
-                                        text="Upload (ttf/otf/woff/woff2/etc..)"
-                                    />
-                                </label>
-                                <input
-                                    ref={ref}
-                                    name="upload-scripts-file"
-                                    id="upload-scripts-file"
-                                    type="file"
-                                    multiple
-                                    hidden
-                                    onChange={(event) => handleUpload(event, selectedScript)}
-                                />
-                            </>
-                        }
-                    </Grid>
-                </Stack>
-            }
-        </Stack>
-    )
+			newStylesObject.variableFont = stylesObject?.variableFont ? [...stylesObject?.variableFont, ...variableRefs] : [...variableRefs];
+
+			let patch = { styles: newStylesObject };
+
+			subfamiliesArray = subfamiliesArray ? subfamiliesArray : [];
+			subfamiliesArray = [...subfamiliesArray, ...uniqueSubfamiles].filter((sf, index, self) => {
+				return self.indexOf(sf) === index;
+			});
+
+			patch.styles.subfamilies = subfamiliesArray;
+
+			let includedScripts = [script, ...scripts].filter((lang, index, self) => {
+				return self.indexOf(lang) === index;
+			});
+			patch.scripts = includedScripts;
+
+			if (doc_id.startsWith('drafts.')) {
+				await client.patch(doc_id).set(patch).commit()
+					.catch(err => {
+						console.error('Error patching styles:', err.message);
+						setStatus('Error patching styles: ' + err.message);
+						setError(true);
+					});
+				doc_id = doc_id.replace('drafts.', '');
+			}
+
+			await client.patch(doc_id).set(patch).commit()
+				.catch(err => {
+					console.error('Error patching styles:', err.message);
+					setStatus('Error patching styles');
+					setError(true);
+				});
+
+			if (failedFiles.length > 0) {
+				const names = failedFiles.map(file => file.name);
+				setStatus('Upload completed with errors. Failed files: ' + names.join(', '));
+				setError(true);
+			} else {
+				setStatus('Fonts uploaded successfully');
+				setError(false);
+			}
+		} catch (e) {
+			console.error('Error uploading fonts:', e.message);
+			setStatus('Error uploading fonts: ' + e.message);
+			setError(true);
+		}
+		setReady(true);
+	}, [title, slug, doc_id]);
+
+	const scriptLabel = selectedScript
+		? selectedScript[0]?.toUpperCase() + selectedScript.slice(1)
+		: '';
+
+	return (
+		<Stack space={3}>
+			<StatusDisplay status={status} error={error} />
+
+			<Stack space={1}>
+				<Label>Script variant</Label>
+				<Select id="script-select" onChange={(e) => setSelectedScript(e.target.value)}>
+					<option value="">Select a script...</option>
+					{SCRIPTS.map((script, i) => (
+						<option key={'script-' + i} value={script}>
+							{script[0]?.toUpperCase() + script.slice(1)}
+						</option>
+					))}
+				</Select>
+			</Stack>
+
+			{!!(selectedScript && selectedScript !== '') && (
+				ready ? (
+					<Card
+						radius={2}
+						padding={5}
+						style={{
+							position: 'relative',
+							border: '1px dashed var(--card-border-color)',
+							cursor: 'pointer',
+							textAlign: 'center',
+						}}
+					>
+						<Flex direction="column" align="center" justify="center" gap={3} style={{ pointerEvents: 'none' }}>
+							<Text muted><UploadIcon style={{ fontSize: '1.5rem' }} /></Text>
+							<Stack space={1}>
+								<Text align="center" weight="semibold">Upload {scriptLabel} font files</Text>
+								<Text size={1} muted align="center">TTF, OTF, WOFF, WOFF2</Text>
+							</Stack>
+						</Flex>
+						<input
+							ref={ref}
+							type="file"
+							multiple
+							style={{
+								position: 'absolute',
+								top: 0,
+								left: 0,
+								width: '100%',
+								height: '100%',
+								opacity: 0,
+								cursor: 'pointer',
+							}}
+							onChange={(event) => handleUpload(event, selectedScript)}
+						/>
+					</Card>
+				) : (
+					<Flex align="center" justify="center" gap={3} padding={4}>
+						<Spinner />
+						<Text muted size={1}>{status || 'Processing...'}</Text>
+					</Flex>
+				)
+			)}
+		</Stack>
+	);
 };

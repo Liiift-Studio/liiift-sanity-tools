@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import { nanoid } from 'nanoid';
-import { Button, Text, Stack, Box } from '@sanity/ui';
+import { Button, Flex, Spinner, Text } from '@sanity/ui';
 import { useFormValue } from 'sanity';
 import { useSanityClient } from '../hooks/useSanityClient';
 import { expandAbbreviations } from '../utils/generateKeywords';
+import StatusDisplay from './StatusDisplay';
 
 /**
  * Button component that rebuilds the subfamilies array on the current typeface document
@@ -34,16 +35,15 @@ export const RegenerateSubfamiliesComponent = () => {
 
 	return (
 		<>
-			{status && (
-				<Box padding={3} style={{ borderRadius: '4px', marginBottom: '10px' }}>
-					<Text size={1} style={{ color: error ? 'red' : 'green' }}>{status}</Text>
-				</Box>
+			<StatusDisplay status={status} error={error} />
+			{!ready ? (
+				<Flex align="center" justify="center" gap={3} padding={3}>
+					<Spinner />
+					<Text muted size={1}>{status}</Text>
+				</Flex>
+			) : (
+				<Button mode="ghost" tone="primary" padding={3} text="Regenerate Subfamilies" onClick={handleClick} style={{ width: '100%' }} />
 			)}
-			<Button mode="ghost" tone="primary" width="fill" padding={3} onClick={handleClick} disabled={!ready}>
-				<Stack space={2}>
-					<Text align="center">Regenerate Subfamilies</Text>
-				</Stack>
-			</Button>
 		</>
 	);
 };
@@ -66,13 +66,11 @@ const regenerateSubfamilies = async ({ title, stylesObject, slug, doc_id, client
 			return;
 		}
 
-		console.log('Found fonts:', allFonts.length);
 		setStatus(`Found ${allFonts.length} fonts. Processing...`);
 
 		const subfamilies = groupFontsBySubfamily(allFonts);
 		const newSubfamiliesArray = createSubfamiliesArray(subfamilies);
 
-		console.log('New subfamilies:', newSubfamiliesArray);
 		setStatus(`Created ${newSubfamiliesArray.length} subfamily groups`);
 
 		await updateTypefaceSubfamilies(doc_id, stylesObject, newSubfamiliesArray, client, setStatus, setError);
@@ -164,7 +162,6 @@ const updateTypefaceSubfamilies = async (doc_id, stylesObject, newSubfamiliesArr
 
 	try {
 		await client.patch(doc_id).set(patch).commit();
-		console.log(`Updated document: ${doc_id}`);
 
 		if (doc_id.startsWith('drafts.')) {
 			const publishedId = doc_id.replace('drafts.', '');
@@ -172,9 +169,6 @@ const updateTypefaceSubfamilies = async (doc_id, stylesObject, newSubfamiliesArr
 			const publishedDoc = await client.fetch(`*[_id == $publishedId]`, { publishedId }).then(res => res[0]);
 			if (publishedDoc) {
 				await client.patch(publishedId).set(patch).commit();
-				console.log(`Updated published document: ${publishedId}`);
-			} else {
-				console.log(`No published document found for ${publishedId}, skipping`);
 			}
 		}
 	} catch (err) {

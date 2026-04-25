@@ -25,7 +25,7 @@ const UploadButton = forwardRef(({ handleUpload }, ref) => {
 				<Text muted><UploadIcon style={{ fontSize: '1.5rem' }} /></Text>
 				<Stack space={1}>
 					<Text align="center" weight="semibold">Upload font files</Text>
-					<Text size={1} muted align="center">TTF, OTF, WOFF, WOFF2 — replaces existing fonts</Text>
+					<Text size={1} muted align="center">TTF, OTF, WOFF, WOFF2</Text>
 				</Stack>
 			</Flex>
 			<input

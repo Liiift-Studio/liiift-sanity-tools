@@ -1,7 +1,7 @@
 // Batch font uploader with tabbed Upload / Font Utilities interface
 
 import React, { useCallback, useState, useMemo } from 'react';
-import { Card, Grid, Box, Flex, Text, Label, Switch, Button, Tab, TabList, TabPanel, Spinner } from '@sanity/ui';
+import { Card, Stack, Flex, Text, Label, Switch, Button, Tab, TabList, TabPanel, Spinner } from '@sanity/ui';
 import { ControlsIcon, UploadIcon } from '@sanity/icons';
 import { useFormValue } from 'sanity';
 
@@ -266,11 +266,30 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 		setStatus('ready');
 	};
 
+	/** Spinner shown while a utility action runs — displays live status string. */
+	const renderSpinner = () => (
+		<Flex align="center" justify="center" gap={3} padding={3}>
+			<Spinner />
+			<Text muted size={1}>{status}</Text>
+		</Flex>
+	);
+
+	/** Grouped switch row — label and description stacked next to the toggle. */
+	const renderSwitch = (checked, onChange, label, description) => (
+		<Flex align="flex-start" gap={3}>
+			<Switch checked={checked} onChange={onChange} style={{ flexShrink: 0, marginTop: 2 }} />
+			<Stack space={1}>
+				<Label>{label}</Label>
+				<Text size={1} muted>{description}</Text>
+			</Stack>
+		</Flex>
+	);
+
 	return (
 		<>
 			{title && title !== '' && slug && slug !== '' &&
 				<>
-					<TabList space={2} paddingBottom={3}>
+					<TabList space={2} paddingBottom={2}>
 						<Tab
 							aria-controls="upload-panel"
 							icon={UploadIcon}
@@ -290,114 +309,83 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 							space={2}
 						/>
 					</TabList>
-					<Card border padding={2} shadow={1} radius={2}>
+					<Card border padding={3} shadow={1} radius={2}>
 						<StatusDisplay status={status} error={error} />
 
 						<TabPanel aria-labelledby="upload-tab" hidden={tabId !== 'upload'} id="upload-panel">
-							{ready ?
-								<>
-									<Grid marginTop={1} marginBottom={1} columns={[1]}>
-										<Flex direction="column" gap={3}>
-											<Flex align="center">
-												<Switch
-													checked={preserveShortenedNames}
-													onChange={(e) => setPreserveShortenedNames(e.target.checked)}
-												/>
-												<Box marginLeft={2}>
-													<Label>Preserve shortened names</Label>
-												</Box>
-											</Flex>
-											<Text size={1} muted>
-												When enabled, abbreviations in font names are kept as-is (e.g. "XNarrow" stays "XNarrow", "Bd" stays "Bd").
-											</Text>
-											<Flex align="center">
-												<Switch
-													checked={preserveFileNames}
-													onChange={(e) => setPreserveFileNames(e.target.checked)}
-												/>
-												<Box marginLeft={2}>
-													<Label>Preserve file names</Label>
-												</Box>
-											</Flex>
-											<Text size={1} muted>
-												When enabled, the original filename capitalisation is used for asset naming instead of the normalised font title.
-											</Text>
-										</Flex>
-									</Grid>
-									<Grid columns={[1]} gap={3} paddingTop={3}>
-										<PriceInput inputPrice={inputPrice} handleInputChange={handleInputChange} />
-									</Grid>
-									<Grid columns={[1]} gap={3}>
-										<UploadButton ref={ref} handleUpload={handleUpload} />
-									</Grid>
-								</>
-								:
-								<Flex align="center" height="fill" justify="center" direction="column" gap={3}>
-									<Spinner center />
-									<Text muted size={1} align="center">Processing...</Text>
+							{ready ? (
+								<Stack space={3}>
+									{renderSwitch(
+										preserveShortenedNames,
+										(e) => setPreserveShortenedNames(e.target.checked),
+										'Preserve shortened names',
+										'Abbreviations in font names are kept as-is (e.g. "XNarrow" stays "XNarrow", "Bd" stays "Bd").',
+									)}
+									{renderSwitch(
+										preserveFileNames,
+										(e) => setPreserveFileNames(e.target.checked),
+										'Preserve file names',
+										'Original filename capitalisation is used for asset naming instead of the normalised font title.',
+									)}
+									<PriceInput inputPrice={inputPrice} handleInputChange={handleInputChange} />
+									<UploadButton ref={ref} handleUpload={handleUpload} />
+								</Stack>
+							) : (
+								<Flex align="center" justify="center" gap={3} padding={4}>
+									<Spinner />
+									<Text muted size={1}>{status}</Text>
 								</Flex>
-							}
+							)}
 						</TabPanel>
 
 						<TabPanel aria-labelledby="utilities-tab" hidden={tabId !== 'utilities'} id="utilities-panel">
-							<Flex marginTop={2} marginBottom={4} direction="column" gap={2}>
-								<Text size={2} weight="bold">Rename Fonts</Text>
-								<Text size={1} muted>
-									Renames all fonts in the typeface fonts list based on their existing TTF/OTF file metadata.
-								</Text>
-							</Flex>
-							<Grid marginTop={1} marginBottom={3} columns={[1]}>
-								<Flex direction="column" gap={3}>
-									<Flex align="center">
-										<Switch
-											checked={preserveShortenedNames}
-											onChange={(e) => setPreserveShortenedNames(e.target.checked)}
-										/>
-										<Box marginLeft={2}>
-											<Label>Preserve shortened names</Label>
-										</Box>
-									</Flex>
-									<Text size={1} muted>
-										When enabled, abbreviations in font names are kept as-is.
-									</Text>
-								</Flex>
-							</Grid>
-							{ready === 'rename'
-								? <Flex align="center" height="fill" paddingTop={2} paddingBottom={2} justify="center" gap={3}>
-									<Spinner center />
-									<Text muted size={1} align="center">Processing...</Text>
-								</Flex>
-								: <Button mode="ghost" width="fill" tone="primary" text="Rename Existing Fonts" onClick={handleRenameExistingFonts} disabled={ready !== true} />
-							}
+							<Stack space={3}>
+								<Card border radius={2} padding={3}>
+									<Stack space={3}>
+										<Stack space={1}>
+											<Text size={1} weight="semibold">Rename Fonts</Text>
+											<Text size={1} muted>Renames all fonts in the typeface based on their TTF/OTF file metadata.</Text>
+										</Stack>
+										{renderSwitch(
+											preserveShortenedNames,
+											(e) => setPreserveShortenedNames(e.target.checked),
+											'Preserve shortened names',
+											'Abbreviations in font names are kept as-is.',
+										)}
+										{ready === 'rename'
+											? renderSpinner()
+											: <Button mode="ghost" tone="primary" text="Rename Existing Fonts" onClick={handleRenameExistingFonts} disabled={ready !== true} style={{ width: '100%' }} />
+										}
+									</Stack>
+								</Card>
 
-							<Flex marginTop={6} marginBottom={4} direction="column" gap={2}>
-								<Text size={2} weight="bold">Update Font Prices</Text>
-								<Text size={1} muted>
-									Updates the price of all fonts in the typeface fonts list using the Style Price input below.
-								</Text>
-							</Flex>
-							<PriceInput inputPrice={inputPrice} handleInputChange={handleInputChange} />
-							{ready === 'price'
-								? <Flex align="center" height="fill" paddingTop={2} paddingBottom={2} justify="center" gap={3}>
-									<Spinner center />
-									<Text muted size={1} align="center">Processing...</Text>
-								</Flex>
-								: <Button mode="ghost" tone="primary" width="fill" text="Update All Font Prices" onClick={handleChangeFontPrice} disabled={ready !== true} />
-							}
+								<Card border radius={2} padding={3}>
+									<Stack space={3}>
+										<Stack space={1}>
+											<Text size={1} weight="semibold">Update Font Prices</Text>
+											<Text size={1} muted>Sets the same price on every font in this typeface.</Text>
+										</Stack>
+										<PriceInput inputPrice={inputPrice} handleInputChange={handleInputChange} />
+										{ready === 'price'
+											? renderSpinner()
+											: <Button mode="ghost" tone="primary" text="Update All Font Prices" onClick={handleChangeFontPrice} disabled={ready !== true} style={{ width: '100%' }} />
+										}
+									</Stack>
+								</Card>
 
-							<Flex marginTop={6} marginBottom={3} direction="column" gap={2}>
-								<Text size={2} weight="bold">Regenerate CSS</Text>
-								<Text size={1} muted>
-									Rebuilds the CSS @font-face files for all fonts in the typeface fonts list.
-								</Text>
-							</Flex>
-							{ready === 'css'
-								? <Flex align="center" height="fill" paddingTop={2} paddingBottom={2} justify="center" gap={3}>
-									<Spinner center />
-									<Text muted size={1} align="center">Processing...</Text>
-								</Flex>
-								: <Button mode="ghost" tone="primary" width="fill" text="Regenerate CSS Files" onClick={handleRegenerateCssFiles} disabled={ready !== true} />
-							}
+								<Card border radius={2} padding={3}>
+									<Stack space={3}>
+										<Stack space={1}>
+											<Text size={1} weight="semibold">Regenerate CSS</Text>
+											<Text size={1} muted>Rebuilds the @font-face CSS file for every font in the typeface from its woff2 asset.</Text>
+										</Stack>
+										{ready === 'css'
+											? renderSpinner()
+											: <Button mode="ghost" tone="primary" text="Regenerate CSS Files" onClick={handleRegenerateCssFiles} disabled={ready !== true} style={{ width: '100%' }} />
+										}
+									</Stack>
+								</Card>
+							</Stack>
 						</TabPanel>
 					</Card>
 				</>
