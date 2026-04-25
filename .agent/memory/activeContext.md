@@ -2,16 +2,16 @@
 
 ## Current Work Focus
 
-### Primary Package: sanity-font-uploader v2.0.4
-The `sanity-font-uploader` package has been fully overhauled, tested, and published. It is now integrated into Darden Studio (staging) and is pending integration into TDF and MCKL after Darden testing is complete.
+### Primary Package: sanity-font-uploader v2.0.5
+The `sanity-font-uploader` package has been fully overhauled, tested, and published. It is integrated into Darden Studio (staging) and is pending integration into TDF and MCKL after Darden testing is complete.
 
 ## Recent Work (April 2026)
 
-### sanity-font-uploader — v2.0.0 → v2.0.4 (complete)
+### sanity-font-uploader — v2.0.0 → v2.0.5 (complete)
 
 **Architecture:** Full rewrite from single-file monolith to modular package with separate components, utils, and hooks.
 
-**Bug fixes applied:**
+**Bug fixes applied (v2.0.0–v2.0.4):**
 - GROQ injection in `generateFontData.js` — switched to parameterized queries
 - `value` vs `fileInput` confusion in `SingleUploaderTool.jsx` — Build, Delete, and Regenerate buttons were reading from the wrong variable
 - Missing `reverseSpellingLookup` import in `UploadScriptsComponent.jsx`
@@ -22,6 +22,11 @@ The `sanity-font-uploader` package has been fully overhauled, tested, and publis
 - `determineWeight` regex ordering — `extra bold|extrabold` now checked before `bold`
 - `style` not passed to `generateCssFile` in `SingleUploaderTool.jsx`
 - `console.log` → `console.error` in error paths across multiple utils
+
+**UI overhaul (v2.0.5):**
+- `SingleUploaderTool.jsx` — Card-bordered rows per font format, monospace format labels, TrashIcon delete buttons, ghost Upload buttons, extracted `renderCssSection()` and `renderDataSection()` fixing remaining `value→fileInput` bugs
+- `StatusDisplay.jsx` — Returns null when idle, uses Card tone instead of inline styles
+- `UploadButton.jsx` — Dashed-border drop zone with UploadIcon and centered descriptive text
 
 **Tests added:** 92 tests across 4 files in `src/tests/`
 - `generateKeywords.test.js` — reverseSpellingLookup, expandAbbreviations, removeWeightNames, generateStyleKeywords
@@ -35,17 +40,15 @@ The `sanity-font-uploader` package has been fully overhauled, tested, and publis
 - README written — installation, components, full schema field reference, env vars, link scripts
 - `link:darden`, `link:tdf`, `link:mckl`, `link:all` scripts added for local symlink dev
 
-**Published:** v2.0.4 on npm as `@liiift-studio/sanity-font-uploader`
+**Published:** v2.0.5 on npm as `@liiift-studio/sanity-font-uploader`
 
 ### Consumer repo state
 | Repo | Branch | Version | Merged to staging |
 |---|---|---|---|
-| `sites/darden/sanity` | `feature/font-uploader-v2` | `^2.0.3` | ✅ Yes |
-| `sites/tdf/sanity` | `feature/font-uploader-v2` | `^2.0.3` | ❌ Holding — test in Darden first |
-| `sites/mckl/cms` | `feature/font-uploader-v2` | `^2.0.3` | ❌ Holding — test in Darden first |
-| `tools/sanity-tools` | `main` | v2.0.4 | ✅ Merged to main |
-
-**Note:** Consumer repos are on `^2.0.3` in package.json and still need bumping to `^2.0.4` before final merge.
+| `sites/darden/sanity` | `feature/font-uploader-v2` | `^2.0.5` | ✅ Yes |
+| `sites/tdf/sanity` | `feature/font-uploader-v2` | `^2.0.5` | ❌ Holding — test in Darden first |
+| `sites/mckl/cms` | `feature/font-uploader-v2` | `^2.0.5` | ❌ Holding — test in Darden first |
+| `tools/sanity-tools` | `feature/font-uploader-v2` | v2.0.5 | ❌ Not yet merged to main |
 
 ## Active Decisions
 
@@ -56,6 +59,6 @@ The `sanity-font-uploader` package has been fully overhauled, tested, and publis
 ## Next Steps
 
 1. **Smoke test** the font uploader in Darden Studio (staging) — verify Build button, delete, Regenerate, batch upload, CSS generation
-2. **Bump consumer repos to `^2.0.4`** — darden, tdf, mckl all still on `^2.0.3`
-3. **Merge TDF and MCKL** into staging once Darden testing passes
-4. **Merge darden `feature/font-uploader-v2` into `main`** — currently only in staging
+2. **Merge TDF and MCKL** into staging once Darden testing passes
+3. **Merge darden `feature/font-uploader-v2` into `main`** — currently only in staging
+4. **Merge sanity-tools `feature/font-uploader-v2` into `main`** — currently unpublished to main
