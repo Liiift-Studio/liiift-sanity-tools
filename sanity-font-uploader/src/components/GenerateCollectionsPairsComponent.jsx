@@ -1,4 +1,4 @@
-// Generates font collections and pairs from a typeface's linked fonts
+// Generates Full Family, Uprights, Italics, and Subfamily collections plus Regular/Italic weight pairs from a typeface's linked fonts
 
 import React, { useCallback, useState } from 'react';
 import { Stack, Grid, Flex, Text, Button, Card, Spinner } from '@sanity/ui';

@@ -1,4 +1,4 @@
-// Client-side utility: triggers subset generation on the server from an existing WOFF2 URL.
+// Requests DS-WEB fingerprinted WOFF2 and display subset generation from an existing WOFF2 via fontWorker
 // The server subsets the WOFF2 directly — no TTF conversion involved.
 
 /**

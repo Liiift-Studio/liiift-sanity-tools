@@ -1,4 +1,4 @@
-// Inline price input: Price + $ + input + "per style" on one row
+// Reusable $ + number input for collection and pair price fields
 
 import React from 'react';
 import { Flex, Text } from '@sanity/ui';

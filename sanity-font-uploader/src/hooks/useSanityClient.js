@@ -1,4 +1,4 @@
-// Thin wrapper around useClient that pins the API version for the font uploader
+// Returns the Sanity client instance from the studio context
 import {useMemo} from 'react'
 import {useClient} from 'sanity'
 

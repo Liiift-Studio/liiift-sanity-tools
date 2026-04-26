@@ -1,4 +1,4 @@
-// Utility functions for processing font files during batch upload
+// Reads font files via FileReader, parses with fontkit, and builds the fontsObjects map — exports individual weight/style extraction helpers
 
 import * as fontkit from 'fontkit';
 import { nanoid } from 'nanoid';

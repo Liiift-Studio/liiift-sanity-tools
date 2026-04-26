@@ -1,4 +1,4 @@
-// Component for regenerating the subfamily groupings on a typeface document
+// Recalculates and patches the subfamily field on all fonts linked to a typeface
 
 import React, { useState } from 'react';
 import { nanoid } from 'nanoid';

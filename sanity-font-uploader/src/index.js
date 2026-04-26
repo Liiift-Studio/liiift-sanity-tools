@@ -1,4 +1,4 @@
-// Entry point for @liiift-studio/sanity-font-uploader v2 — exports all font uploader components and utilities
+// Entry point for @liiift-studio/sanity-font-manager — exports all font manager components, hooks, and utilities
 
 // Components
 export { BatchUploadFonts } from './components/BatchUploadFonts.jsx';

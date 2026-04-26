@@ -1,4 +1,4 @@
-// Utility for updating the typeface document with new font references and subfamily structure
+// Patches the parent typeface document's styles.fonts array with newly uploaded font references
 
 import { nanoid } from 'nanoid';
 

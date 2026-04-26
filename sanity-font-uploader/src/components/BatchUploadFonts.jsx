@@ -1,4 +1,4 @@
-// Batch font uploader with drag-and-drop, file review list, and toggled Utilities panel
+// Batch font uploader — drag-and-drop file list, confirm-to-upload, elapsed timer, Wake Lock, and beforeunload guard for long uploads
 
 import React, { useCallback, useState, useMemo, useRef, useEffect } from 'react';
 import { Card, Box, Flex, Grid, Text, Label, Switch, Button, Spinner, Tooltip, Stack } from '@sanity/ui';

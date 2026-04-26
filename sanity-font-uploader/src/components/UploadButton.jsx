@@ -1,4 +1,4 @@
-// Invisible-overlay file input styled as a Sanity UI primary button
+// Label-wrapped button that triggers a hidden file input
 
 import React, { forwardRef } from 'react';
 import { Button, Text } from '@sanity/ui';

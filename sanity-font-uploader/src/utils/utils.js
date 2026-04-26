@@ -1,4 +1,4 @@
-// Shared constants for the font uploader — script list driven by SANITY_STUDIO_SCRIPTS env var
+// Script variant constants (SCRIPTS, SCRIPTS_OBJECT) and HtmlDescription component for the supported script list
 
 import React from 'react'
 

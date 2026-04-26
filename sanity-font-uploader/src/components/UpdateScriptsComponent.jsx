@@ -1,4 +1,4 @@
-// Sanity array input wrapper that adds a button to sync scripts from linked font documents
+// Updates and re-links existing script font variant references on font documents
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Stack, Text, Button } from '@sanity/ui';

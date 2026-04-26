@@ -1,4 +1,4 @@
-// Utility for renaming existing font documents by re-extracting metadata from their TTF/OTF files
+// Renames font document IDs across a typeface when a typeface slug changes
 
 import * as fontkit from 'fontkit';
 import {

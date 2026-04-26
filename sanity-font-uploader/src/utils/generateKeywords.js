@@ -1,4 +1,4 @@
-// Font weight and style keyword lists with alternative spellings for font name parsing
+// Builds weight and italic keyword lists with abbreviation expansions for parsing font subfamily names
 
 const coreWeights = ["Hairline", "ExtraThin", "Thin", "Mager", "Maigre", "ExtraLight", "Light", "Chiaro", "Lite", "Leicht", "Demi", "Book", "Buch", "Regular", "Normal", "Medium", "Stark", "Thick", "Kräftig", "Viertelfett", "Halbfett", "Dreiviertelfett", "Dark", "Bold", "Neretto", "Gras", "Fett", "Extrafett", "Black", "Nero", "Heavy", "Nerissimo", "Ultra", "Fat", "Poster"];
 const modifiers = ["Demi", "Semi", "Extra", "Ultra", "Super", "Plus"];

@@ -1,4 +1,4 @@
-// Extracts font metadata, metrics, and OpenType features from a TTF file and optionally patches the Sanity document
+// Extracts metadata, metrics, glyph count, OpenType features, and variable axes from a TTF and optionally patches the Sanity font document
 
 import { Buffer } from 'buffer';
 import * as fontkit from 'fontkit';

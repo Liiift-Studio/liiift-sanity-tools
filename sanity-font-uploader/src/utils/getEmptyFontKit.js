@@ -1,4 +1,4 @@
-// Extracts font names and subfamily info from files without creating Sanity documents — used for previews
+// Returns a zeroed-out fontkit-shaped placeholder object used when no font binary is available
 import * as fontkit from 'fontkit';
 import slugify from 'slugify';
 

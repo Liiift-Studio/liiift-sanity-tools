@@ -1,4 +1,4 @@
-// Displays the current status and error state of an upload or utility operation
+// Shared status bar — shows status message in green/red with an optional action slot on the far right
 
 import React from 'react';
 import { Flex, Text } from '@sanity/ui';

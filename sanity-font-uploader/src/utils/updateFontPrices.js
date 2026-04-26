@@ -1,4 +1,4 @@
-// Utility for bulk-updating the price of all fonts in a typeface
+// Bulk-updates the price field across all font documents linked to a typeface
 
 /**
  * Sets the same price on every font document referenced by a typeface.
