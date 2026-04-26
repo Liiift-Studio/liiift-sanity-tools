@@ -627,7 +627,7 @@ export const SingleUploaderTool = (props) => {
 			{renderFontSection('ttf')}
 
 			{status === 'ready' && fileInput?.ttf && (
-				<Grid columns={[2]} gap={2}>
+				<Grid columns={[1, 2]} gap={2}>
 					<Button
 						mode="ghost"
 						tone="primary"

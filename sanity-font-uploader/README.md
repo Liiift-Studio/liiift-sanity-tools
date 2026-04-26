@@ -91,6 +91,78 @@ Updates and re-links existing script font variant references on font documents �
 
 Recalculates and patches the `subfamily` field on all fonts linked to a typeface, based on the typeface's defined subfamily groups — without re-uploading any files.
 
+### `KeyValueInput`
+
+Generic ordered key-value editor where both keys and values are plain strings. Supports add, remove, and reorder (up/down arrows). Values are stored as an array of `{ key, value }` objects.
+
+```jsx
+import { KeyValueInput } from '@liiift-studio/sanity-font-manager';
+
+{
+  name: 'aliases',
+  type: 'array',
+  of: [{ type: 'object', fields: [{ name: 'key', type: 'string' }, { name: 'value', type: 'string' }] }],
+  components: { input: KeyValueInput },
+}
+```
+
+### `KeyValueReferenceInput`
+
+Generic key-value editor where keys are plain strings and values are weak Sanity document references. Supports searching by title via a popover picker, add/remove/reorder, and an optional `topActions` slot for action buttons above the list.
+
+| Prop | Type | Description |
+|---|---|---|
+| `fetchReferences` | `async (client, doc) => [{_id, title}]` | Async function that returns candidate references for the picker. Receives the Sanity client and the current document. |
+| `topActions` | `ReactNode` | Optional content rendered above the key-value rows (e.g. autofill buttons). |
+| `referenceType` | `string` | Document type for the created weak references (default: `'font'`). |
+
+```jsx
+import { KeyValueReferenceInput } from '@liiift-studio/sanity-font-manager';
+
+{
+  name: 'instanceMap',
+  type: 'array',
+  of: [{ type: 'object', fields: [{ name: 'key', type: 'string' }, { name: 'value', type: 'reference', weak: true, to: [{ type: 'font' }] }] }],
+  components: { input: KeyValueReferenceInput },
+  // Pass props via options or a wrapper component:
+  options: {
+    fetchReferences: async (client, doc) => client.fetch('*[_type == "font"]{_id, title}'),
+    referenceType: 'font',
+  },
+}
+```
+
+### `VariableInstanceReferencesInput`
+
+Font-specific wrapper around `KeyValueReferenceInput` for mapping variable font instance names to their matching static font documents. Provides:
+
+- A picker filtered to fonts sharing the same `typefaceName`, excluding variable fonts
+- **Autofill with Matching** — calls `parseVariableFontInstances` to match instance names to existing font documents by weight/style heuristics
+- **Autofill Keys Only** — populates instance name keys from the font's `variableInstances` metadata without resolving references
+- Autofill buttons are shown only when the document is a variable font with parsed instance data
+- Replace/merge confirmation dialog when pairs already exist
+
+```jsx
+import { VariableInstanceReferencesInput } from '@liiift-studio/sanity-font-manager';
+
+{
+  name: 'variableInstanceReferences',
+  title: 'Variable Font Instances',
+  type: 'array',
+  hidden: ({ parent }) => !parent.variableFont,
+  of: [
+    {
+      type: 'object',
+      fields: [
+        { name: 'key', type: 'string', title: 'Instance Name' },
+        { name: 'value', type: 'reference', weak: true, to: [{ type: 'font' }], title: 'Matching Font' },
+      ],
+    },
+  ],
+  components: { input: VariableInstanceReferencesInput },
+}
+```
+
 ### `StatusDisplay`
 
 Shared status bar used by all components. Shows `Status: [message]` in green on success and red on error, with an optional `action` element slot on the far right (used for the advanced toggle in `SingleUploaderTool`).
@@ -209,6 +281,7 @@ const client = useSanityClient();
 | `glyphCount` | `number` | Total number of glyphs |
 | `opentypeFeatures` | `object` | Available OpenType feature tags |
 | `characterSet` | `object` | Array of Unicode code points covered by the font |
+| `variableInstanceReferences` | `array<object>` | Maps variable font instance names to static font document references — `[{ key: string, value: reference }]` |
 
 ### Typeface document (`typeface`)
 
