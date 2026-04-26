@@ -1,7 +1,7 @@
 // Per-font file manager: upload/build/delete buttons for each font format
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Button, Stack, Flex, Box, Text, Card } from '@sanity/ui';
+import { Button, Grid, Stack, Flex, Box, Text, Card } from '@sanity/ui';
 import { TrashIcon } from '@sanity/icons';
 import { useFormValue, set, unset } from 'sanity';
 import { Buffer } from 'buffer';
@@ -134,13 +134,15 @@ export const SingleUploaderTool = (props) => {
 
 	/** Converts and uploads the source font file to one or more target formats. */
 	const handleGenerateFontFile = useCallback(async (code, sourceFile) => {
-		setMessage(`Building ${code === 'all' ? 'all font files' : code + ' file'}...`);
-		setStatus(`Building ${code === 'all' ? 'all font files' : code + ' file'}`);
+		const isMissing = Array.isArray(code);
+		const label = code === 'all' ? 'all font files' : isMissing ? 'missing files' : code + ' file';
+		setMessage(`Building ${label}...`);
+		setStatus(`Building ${label}`);
 		setError(false);
 
 		try {
 			const url = `https://cdn.sanity.io/files/${process.env.SANITY_STUDIO_PROJECT_ID}/${process.env.SANITY_STUDIO_DATASET}/${sourceFile?.asset?._ref.replace('file-', '').replace('-', '.')}`;
-			const codes = code === 'all' ? ['otf', 'woff', 'woff2', 'eot', 'svg', 'data'] : [code];
+			const codes = code === 'all' ? ['otf', 'woff', 'woff2', 'eot', 'svg', 'data'] : isMissing ? code : [code];
 
 			await generateFontFile({
 				codes,
@@ -611,13 +613,32 @@ export const SingleUploaderTool = (props) => {
 			{renderFontSection('ttf')}
 
 			{status === 'ready' && fileInput?.ttf && (
-				<Button
-					mode="ghost"
-					tone="primary"
-					onClick={() => handleGenerateFontFile('all', fileInput.ttf)}
-					text="Regenerate Files / Data from TTF"
-					style={{ width: '100%' }}
-				/>
+				<Grid columns={[2]} gap={2}>
+					<Button
+						mode="ghost"
+						tone="primary"
+						onClick={() => handleGenerateFontFile('all', fileInput.ttf)}
+						text="Rebuild All from TTF"
+						style={{ width: '100%' }}
+					/>
+					<Button
+						mode="ghost"
+						tone="primary"
+						onClick={() => {
+							const missing = [
+								!fileInput?.otf?.asset?._ref && 'otf',
+								!fileInput?.woff?.asset?._ref && 'woff',
+								!fileInput?.woff2?.asset?._ref && 'woff2',
+								!fileInput?.eot?.asset?._ref && 'eot',
+								!fileInput?.svg?.asset?._ref && 'svg',
+								!doc_metaData?.version && 'data',
+							].filter(Boolean);
+							handleGenerateFontFile(missing, fileInput.ttf);
+						}}
+						text="Build Missing"
+						style={{ width: '100%' }}
+					/>
+				</Grid>
 			)}
 
 			{renderFontSection('otf', 'woff')}
