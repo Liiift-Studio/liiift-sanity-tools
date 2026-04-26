@@ -235,6 +235,39 @@ Label-wrapped button that triggers a hidden file input.
 
 ---
 
+## Schema field definitions
+
+Pre-built Sanity schema field objects that can be spread directly into a typeface schema's `fields` array. Eliminates hundreds of lines of repeated field definitions across consumer studios.
+
+### `openTypeField`
+
+A complete `openType` object field wired to the `openType` tab group. Includes the `features` checkbox array (all standard OpenType feature keys) plus per-feature sub-objects with `title`, `feature`, and `customText` fields. Uses `SetOTF` internally for auto-detection.
+
+```js
+import { openTypeField } from '@liiift-studio/sanity-font-manager';
+
+// In your typeface schema fields array:
+openTypeField,
+```
+
+Requires the `openType` group to be declared in your schema's `groups` array:
+```js
+{ name: 'openType', title: 'Open Type' }
+```
+
+### `styleCountField`
+
+A read-only `number` field in the `styles` group that displays the total count of static + variable font styles linked to the typeface. Uses `StyleCountInput` internally.
+
+```js
+import { styleCountField } from '@liiift-studio/sanity-font-manager';
+
+// In your typeface schema fields array:
+styleCountField,
+```
+
+---
+
 ## Hook
 
 ### `useSanityClient`
