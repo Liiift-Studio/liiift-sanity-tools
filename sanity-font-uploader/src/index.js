@@ -53,6 +53,10 @@ export { renameFontDocuments } from './utils/regenerateFontData.js';
 export { updateFontPrices } from './utils/updateFontPrices.js';
 export { sanitizeForSanityId } from './utils/sanitizeForSanityId.js';
 
+// Schema field definitions
+export { openTypeField } from './schema/openTypeField.js';
+export { styleCountField } from './schema/styleCountField.js';
+
 // Keyword utilities
 export {
 	generateStyleKeywords,
