@@ -11,6 +11,9 @@ export { FontScriptUploaderComponent } from './components/FontScriptUploaderComp
 export { default as StatusDisplay } from './components/StatusDisplay.jsx';
 export { default as PriceInput } from './components/PriceInput.jsx';
 export { default as UploadButton } from './components/UploadButton.jsx';
+export { KeyValueInput } from './components/KeyValueInput.jsx';
+export { KeyValueReferenceInput } from './components/KeyValueReferenceInput.jsx';
+export { VariableInstanceReferencesInput } from './components/VariableInstanceReferencesInput.jsx';
 
 // Hooks
 export { useSanityClient } from './hooks/useSanityClient.js';
