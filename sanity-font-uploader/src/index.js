@@ -57,6 +57,7 @@ export { sanitizeForSanityId } from './utils/sanitizeForSanityId.js';
 export { openTypeField } from './schema/openTypeField.js';
 export { styleCountField } from './schema/styleCountField.js';
 export { stylisticSetField } from './schema/stylisticSetField.js';
+export { createStylesField } from './schema/stylesField.js';
 
 // Keyword utilities
 export {
