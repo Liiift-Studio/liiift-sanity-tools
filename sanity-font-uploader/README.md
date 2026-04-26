@@ -266,6 +266,22 @@ import { styleCountField } from '@liiift-studio/sanity-font-manager';
 styleCountField,
 ```
 
+### `stylisticSetField`
+
+A complete `stylisticSet` object field for the `stylisticSets` group. Contains two sub-arrays: `featured` (highlighted words/phrases with per-character backtick syntax, stylistic feature picker, size, and CSS overrides) and `sets` (full catalogue of feature → glyph mappings). Both include the full OpenType feature dropdown (44 named features + all 20 stylistic sets).
+
+```js
+import { stylisticSetField } from '@liiift-studio/sanity-font-manager';
+
+// In your typeface schema fields array:
+stylisticSetField,
+```
+
+Requires the `stylisticSets` group to be declared in your schema's `groups` array:
+```js
+{ name: 'stylisticSets', title: 'Stylistic Sets' }
+```
+
 ---
 
 ## Hook
