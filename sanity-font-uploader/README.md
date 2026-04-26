@@ -75,6 +75,25 @@ One-click generator for Full Family, Uprights, Italics, and Subfamily collection
 import { GenerateCollectionsPairsComponent } from '@liiift-studio/sanity-font-manager';
 ```
 
+### `PrimaryCollectionGeneratorTypeface`
+
+One-click generator for a single full-family collection that includes all fonts linked to the typeface. Prepends the new collection to the existing `styles.collections` array — non-destructive. Uses `SANITY_STUDIO_DEFAULT_COLLECTION_PRICE` as the default price, falling back to `100`.
+
+Wire it up on a `string` field in the typeface schema:
+
+```jsx
+import { PrimaryCollectionGeneratorTypeface } from '@liiift-studio/sanity-font-manager';
+
+{
+  name: 'generateCollectionGroup',
+  type: 'string',
+  title: 'Generate Full Family Collection',
+  description: 'Generate a collection that includes all the styles from this typeface.',
+  components: { input: PrimaryCollectionGeneratorTypeface },
+  hidden: ({ parent }) => !parent?.styles?.fonts?.length,
+}
+```
+
 ### `FontScriptUploaderComponent`
 
 Script-aware uploader for per-script font file variants (Latin, Arabic, Hebrew, etc.) stored in `scriptFileInput` on the font document.

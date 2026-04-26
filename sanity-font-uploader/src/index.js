@@ -14,6 +14,7 @@ export { default as UploadButton } from './components/UploadButton.jsx';
 export { KeyValueInput } from './components/KeyValueInput.jsx';
 export { KeyValueReferenceInput } from './components/KeyValueReferenceInput.jsx';
 export { VariableInstanceReferencesInput } from './components/VariableInstanceReferencesInput.jsx';
+export { PrimaryCollectionGeneratorTypeface } from './components/PrimaryCollectionGeneratorTypeface.jsx';
 
 // Hooks
 export { useSanityClient } from './hooks/useSanityClient.js';
