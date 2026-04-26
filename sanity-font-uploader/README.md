@@ -110,6 +110,39 @@ Updates and re-links existing script font variant references on font documents �
 
 Recalculates and patches the `subfamily` field on all fonts linked to a typeface, based on the typeface's defined subfamily groups — without re-uploading any files.
 
+### `SetOTF`
+
+Detects which configured OpenType feature keys are supported by the typeface's first linked font. Reads `opentypeFeatures.chars` from the font document (populated by `generateFontData`) and patches the `features` array on the field. Shows a feature count when features are detected, and clear error messages when font data is missing.
+
+Wire it up on the `openType` object field in the typeface schema:
+
+```jsx
+import { SetOTF } from '@liiift-studio/sanity-font-manager';
+
+{
+  name: 'openType',
+  type: 'object',
+  components: { input: SetOTF },
+  options: { collapsible: true },
+  fields: [ /* feature fields — each with a `feature` string e.g. 'liga', 'smcp' */ ],
+}
+```
+
+### `StyleCountInput`
+
+Displays the total number of font styles (static + variable) linked to a typeface. Reads `styles.fonts` and `styles.variableFont` arrays from the form context. Useful as a read-only display field in the typeface schema.
+
+```jsx
+import { StyleCountInput } from '@liiift-studio/sanity-font-manager';
+
+{
+  name: 'styleCount',
+  type: 'number',
+  readOnly: true,
+  components: { input: StyleCountInput },
+}
+```
+
 ### `KeyValueInput`
 
 Generic ordered key-value editor where both keys and values are plain strings. Supports add, remove, and reorder (up/down arrows). Values are stored as an array of `{ key, value }` objects.

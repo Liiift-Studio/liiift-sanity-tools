@@ -15,6 +15,8 @@ export { KeyValueInput } from './components/KeyValueInput.jsx';
 export { KeyValueReferenceInput } from './components/KeyValueReferenceInput.jsx';
 export { VariableInstanceReferencesInput } from './components/VariableInstanceReferencesInput.jsx';
 export { PrimaryCollectionGeneratorTypeface } from './components/PrimaryCollectionGeneratorTypeface.jsx';
+export { SetOTF } from './components/SetOTF.jsx';
+export { StyleCountInput } from './components/StyleCountInput.jsx';
 
 // Hooks
 export { useSanityClient } from './hooks/useSanityClient.js';
