@@ -3,6 +3,36 @@
 import { Buffer } from 'buffer';
 import * as fontkit from 'fontkit';
 
+/**
+ * Extracts metadata and metrics from a fontkit font object into plain objects.
+ * @param {Object} font - fontkit font instance
+ * @returns {{ metaData: Object, metrics: Object }}
+ */
+export function buildFontMetadata(font) {
+	const metaData = {
+		postscriptName: font.postscriptName,
+		fullName: font.fullName,
+		familyName: font.familyName,
+		subfamilyName: font.subfamilyName,
+		copyright: font.copyright,
+		version: font.version ? String(font.version).replaceAll('Version ', '') : '',
+		genDate: new Date().toISOString(),
+	};
+	const metrics = {
+		unitsPerEm: font.unitsPerEm,
+		ascender: font.ascent,
+		descender: font.descent,
+		lineGap: font.lineGap,
+		underlinePosition: font.underlinePosition,
+		underlineThickness: font.underlineThickness,
+		italicAngle: font.italicAngle,
+		capHeight: font.capHeight,
+		xHeight: font.xHeight,
+		boundingBox: font.bbox,
+	};
+	return { metaData, metrics };
+}
+
 export default async function generateFontData({ fileInput, url, fontKit, fontId, client, commit = true }) {
 	if (fontId.startsWith('drafts.')) {
 		fontId = fontId.replace('drafts.', '');

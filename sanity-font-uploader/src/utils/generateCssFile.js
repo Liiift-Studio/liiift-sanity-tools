@@ -29,7 +29,7 @@ function _arrayBufferToBase64(buffer) {
  * @param {Object} font - fontkit font instance
  * @returns {{ descriptors: string, skipped: string[] }}
  */
-function buildVFDescriptors(font) {
+export function buildVFDescriptors(font) {
 	const cssAxes = {}
 	const skipped = []
 	try {

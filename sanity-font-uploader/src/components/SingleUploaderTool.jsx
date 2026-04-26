@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button, Grid, Stack, Flex, Box, Text, Card } from '@sanity/ui';
-import { TrashIcon } from '@sanity/icons';
+import { TrashIcon, ControlsIcon } from '@sanity/icons';
 import { useFormValue, set, unset } from 'sanity';
 import { Buffer } from 'buffer';
 import * as fontkit from 'fontkit';
@@ -37,6 +37,7 @@ export const SingleUploaderTool = (props) => {
 	const [status, setStatus] = useState('ready');
 	const [error, setError] = useState(false);
 	const [filenames, setFilenames] = useState({});
+	const [showAdvanced, setShowAdvanced] = useState(false);
 
 	const fileInput = useFormValue(['fileInput']);
 	const doc_id = useFormValue(['_id']);
@@ -608,7 +609,20 @@ export const SingleUploaderTool = (props) => {
 
 	return (
 		<Stack space={2}>
-			<StatusDisplay status={status} error={error} />
+			<StatusDisplay
+				status={status}
+				error={error}
+				action={
+					<Button
+						mode="bleed"
+						icon={ControlsIcon}
+						padding={2}
+						tone={showAdvanced ? 'primary' : 'default'}
+						title="Show advanced file formats"
+						onClick={() => setShowAdvanced(v => !v)}
+					/>
+				}
+			/>
 
 			{renderFontSection('ttf')}
 
@@ -644,12 +658,12 @@ export const SingleUploaderTool = (props) => {
 			{renderFontSection('otf', 'woff')}
 			{renderFontSection('woff', 'ttf')}
 			{renderFontSection('woff2', 'ttf')}
-			{renderTopLevelAssetSection('WEB', 'woff2_web', fileInput?.woff2_web?.asset?._ref, filenames?.woff2_web, handleGenerateSubsetAndWeb)}
-			{renderTopLevelAssetSection('SUBSET', 'woff2_subset', fileInput?.woff2_subset?.asset?._ref, filenames?.woff2_subset, handleGenerateSubsetAndWeb)}
-			{renderFontSection('eot', 'ttf')}
-			{renderFontSection('svg', 'ttf')}
+			{showAdvanced && renderTopLevelAssetSection('WEB', 'woff2_web', fileInput?.woff2_web?.asset?._ref, filenames?.woff2_web, handleGenerateSubsetAndWeb)}
+			{showAdvanced && renderTopLevelAssetSection('SUBSET', 'woff2_subset', fileInput?.woff2_subset?.asset?._ref, filenames?.woff2_subset, handleGenerateSubsetAndWeb)}
+			{showAdvanced && renderFontSection('eot', 'ttf')}
+			{showAdvanced && renderFontSection('svg', 'ttf')}
 			{renderCssSection()}
-			{renderDataSection()}
+			{showAdvanced && renderDataSection()}
 
 			{status === 'ready' && (fileInput?.ttf || fileInput?.otf || fileInput?.woff || fileInput?.woff2) && (
 				<Button mode="ghost" tone="critical" onClick={() => handleDeleteAll()} text="Delete All" style={{ width: '100%' }} />
