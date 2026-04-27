@@ -17,9 +17,11 @@ export { VariableInstanceReferencesInput } from './components/VariableInstanceRe
 export { PrimaryCollectionGeneratorTypeface } from './components/PrimaryCollectionGeneratorTypeface.jsx';
 export { SetOTF } from './components/SetOTF.jsx';
 export { StyleCountInput } from './components/StyleCountInput.jsx';
+export { NestedObjectArraySelector } from './components/NestedObjectArraySelector.jsx';
 
 // Hooks
 export { useSanityClient } from './hooks/useSanityClient.js';
+export { useNestedObjects } from './hooks/useNestedObjects.js';
 
 // Core utilities
 export { default as generateCssFile } from './utils/generateCssFile.js';
