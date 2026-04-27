@@ -1,6 +1,6 @@
 // Detects and sets active OpenType features on a typeface document from the first linked font's metadata
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { set, useFormValue } from 'sanity';
 import { Stack, Button, Text } from '@sanity/ui';
 import { useSanityClient } from '../hooks/useSanityClient';
