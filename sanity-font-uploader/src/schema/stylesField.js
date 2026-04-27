@@ -31,34 +31,34 @@ const variableFontsFilter = async ({ getClient, document, parent }) => {
 /**
  * Generates the Styles object field for a typeface document with configurable per-site options.
  * @param {Object} options
- * @param {boolean} [options.hasFreeFlag=false] - Add a "Free Typeface" boolean field (MCKL)
- * @param {boolean} [options.displayStylesHidden=false] - Hide the displayStyles boolean from editors (Darden, MCKL)
- * @param {boolean} [options.hasSortHeaviestFirst=false] - Add sort order toggle (TDF)
- * @param {boolean} [options.hasBuySectionColumns=false] - Add multi-column buy section toggle (TDF)
- * @param {boolean} [options.hasFontSizeMultiplier=false] - Add style grid font size multiplier (TDF)
- * @param {boolean} [options.hasSerifFlag=false] - Add serif/sans classification flag (TDF)
- * @param {boolean} [options.hasRegenerateSubfamilies=false] - Add the RegenerateSubfamilies action field (TDF, MCKL)
- * @param {boolean} [options.hasSubfamilyFontSizeMultiplier=false] - Add per-subfamily font size multiplier (TDF)
- * @param {boolean} [options.hasSubfamilyUseListOrder=false] - Add per-subfamily manual order toggle (TDF)
- * @param {boolean} [options.hasSubfamilyPreferredStyle=false] - Add per-subfamily preferred style reference (TDF)
- * @param {boolean} [options.hasSubfamilyFontFilter=false] - Filter subfamily font picker to typeface fonts only (TDF)
- * @param {boolean} [options.hasSubfamilyPreview=false] - Add preview to subfamily array items showing font count (MCKL)
- * @param {boolean} [options.pairsHidden=false] - Hide the pairs array from editors (Darden)
+ * @param {boolean} [options.free=false] - Add a "Free Typeface" boolean field
+ * @param {boolean} [options.displayStyles=true] - Show the "Display All Styles" toggle to editors (false = hidden)
+ * @param {boolean} [options.sortHeaviestFirst=false] - Add sort order toggle (heaviest to lightest)
+ * @param {boolean} [options.buySectionColumns=false] - Add multi-column buy section toggle
+ * @param {boolean} [options.fontSizeMultiplier=false] - Add style grid font size multiplier
+ * @param {boolean} [options.serif=false] - Add serif/sans classification flag
+ * @param {boolean} [options.regenerateSubfamilies=false] - Add the RegenerateSubfamilies action field
+ * @param {boolean} [options.subfamilyFontSizeMultiplier=false] - Add per-subfamily font size multiplier
+ * @param {boolean} [options.subfamilyListOrder=false] - Add per-subfamily manual order toggle
+ * @param {boolean} [options.subfamilyPreferredStyle=false] - Add per-subfamily preferred style reference
+ * @param {boolean} [options.subfamilyFontFilter=false] - Filter subfamily font picker to typeface fonts only
+ * @param {boolean} [options.subfamilyPreview=false] - Add preview to subfamily array items showing font count
+ * @param {boolean} [options.pairs=true] - Show the pairs array to editors (false = hidden)
  */
 export function createStylesField({
-	hasFreeFlag = false,
-	displayStylesHidden = false,
-	hasSortHeaviestFirst = false,
-	hasBuySectionColumns = false,
-	hasFontSizeMultiplier = false,
-	hasSerifFlag = false,
-	hasRegenerateSubfamilies = false,
-	hasSubfamilyFontSizeMultiplier = false,
-	hasSubfamilyUseListOrder = false,
-	hasSubfamilyPreferredStyle = false,
-	hasSubfamilyFontFilter = false,
-	hasSubfamilyPreview = false,
-	pairsHidden = false,
+	free = false,
+	displayStyles = true,
+	sortHeaviestFirst = false,
+	buySectionColumns = false,
+	fontSizeMultiplier = false,
+	serif = false,
+	regenerateSubfamilies = false,
+	subfamilyFontSizeMultiplier = false,
+	subfamilyListOrder = false,
+	subfamilyPreferredStyle = false,
+	subfamilyFontFilter = false,
+	subfamilyPreview = false,
+	pairs = true,
 } = {}) {
 
 	// Build the subfamily object item fields conditionally
@@ -68,7 +68,7 @@ export function createStylesField({
 			name: 'title',
 			type: 'string',
 		},
-		...(hasSubfamilyFontSizeMultiplier ? [{
+		...(subfamilyFontSizeMultiplier ? [{
 			title: 'Subfamily Font Size Multiplier',
 			name: 'fontSizeMultiplier',
 			type: 'number',
@@ -76,7 +76,7 @@ export function createStylesField({
 			description: 'Adjust font size for this subfamily in the Family Overview (Design Space). Default is 1.0 (100%). Range: 0.5 to 2.0',
 			validation: Rule => Rule.min(0.5).max(2.0).precision(2),
 		}] : []),
-		...(hasSubfamilyUseListOrder ? [{
+		...(subfamilyListOrder ? [{
 			title: 'Use List Order',
 			name: 'useListOrder',
 			type: 'boolean',
@@ -91,10 +91,10 @@ export function createStylesField({
 			of: [{ type: 'reference', weak: true, to: [{ type: 'font' }] }],
 			options: {
 				sortable: true,
-				...(hasSubfamilyFontFilter ? { filter: fontsFilter } : {}),
+				...(subfamilyFontFilter ? { filter: fontsFilter } : {}),
 			},
 		},
-		...(hasSubfamilyPreferredStyle ? [{
+		...(subfamilyPreferredStyle ? [{
 			title: 'SubFamily Preferred Style',
 			name: 'preferredStyle',
 			type: 'reference',
@@ -119,7 +119,7 @@ export function createStylesField({
 	const subfamilyItem = {
 		type: 'object',
 		fields: subfamilyFields,
-		...(hasSubfamilyPreview ? {
+		...(subfamilyPreview ? {
 			preview: {
 				select: { title: 'title', fonts: 'fonts' },
 				prepare(props) {
@@ -131,7 +131,7 @@ export function createStylesField({
 	};
 
 	const fields = [
-		...(hasFreeFlag ? [{
+		...(free ? [{
 			title: 'Free Typeface',
 			name: 'free',
 			type: 'boolean',
@@ -143,24 +143,24 @@ export function createStylesField({
 			name: 'displayStyles',
 			type: 'boolean',
 			initialValue: true,
-			hidden: displayStylesHidden,
+			hidden: !displayStyles,
 			description: 'Show all Font Styles below collections in Buy Section',
 		},
-		...(hasSortHeaviestFirst ? [{
+		...(sortHeaviestFirst ? [{
 			title: 'Sort Fonts Heaviest to Lightest',
 			name: 'sortHeaviestFirst',
 			type: 'boolean',
 			initialValue: false,
 			description: 'Sort fonts by weight from heaviest (900) to lightest (100). Default is lightest to heaviest (industry standard).',
 		}] : []),
-		...(hasBuySectionColumns ? [{
+		...(buySectionColumns ? [{
 			title: 'Multi Column Buy Section',
 			name: 'buySectionColumns',
 			type: 'boolean',
 			initialValue: true,
 			description: 'Choose Single Column or Multi Column for the Buy Section, Default is Multi Column',
 		}] : []),
-		...(hasFontSizeMultiplier ? [{
+		...(fontSizeMultiplier ? [{
 			title: 'Style Grid Font Size Multiplier',
 			name: 'fontSizeMultiplier',
 			type: 'number',
@@ -168,7 +168,7 @@ export function createStylesField({
 			description: 'Adjust font size in the buy section style grid. Default is 1.0 (100%). Range: 0.5 to 2.0',
 			validation: Rule => Rule.min(0.5).max(2.0).precision(2),
 		}] : []),
-		...(hasSerifFlag ? [{
+		...(serif ? [{
 			title: 'Includes Serifs',
 			name: 'serif',
 			type: 'boolean',
@@ -202,7 +202,7 @@ export function createStylesField({
 			description: 'Variable fonts are automatically included as a bonus when customers purchase all non-variable styles of this typeface.',
 			options: { sortable: true },
 		},
-		...(hasRegenerateSubfamilies ? [{
+		...(regenerateSubfamilies ? [{
 			title: 'Regenerate Subfamilies',
 			name: 'regenerateSubfamilies',
 			type: 'string',
@@ -235,7 +235,7 @@ export function createStylesField({
 			of: [{ type: 'reference', weak: true, to: [{ type: 'pair' }] }],
 			options: { sortable: true },
 			validation: Rule => Rule.unique(),
-			hidden: pairsHidden,
+			hidden: !pairs,
 		},
 	];
 
