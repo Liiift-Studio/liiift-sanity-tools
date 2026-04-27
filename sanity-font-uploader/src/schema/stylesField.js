@@ -11,7 +11,7 @@ const fontsFilter = async ({ getClient, document, parent }) => {
 	const typefaceName = document.title;
 	const fonts = await client.fetch('*[_type == "font" && lower(typefaceName) == lower($typefaceName)]', { typefaceName });
 	const relatedItemsFiltered = fonts.map(f => f._id).filter(Boolean);
-	const existingItems = parent.map(f => f._ref).filter(Boolean);
+	const existingItems = (parent || []).map(f => f._ref).filter(Boolean);
 	return {
 		filter: '!(_id in $existingItems) && (_id in $relatedItemsFiltered)',
 		params: { existingItems, relatedItemsFiltered },
@@ -22,7 +22,7 @@ const fontsFilter = async ({ getClient, document, parent }) => {
 const variableFontsFilter = async ({ getClient, document, parent }) => {
 	const client = getClient({ apiVersion: '2022-11-09' });
 	const typefaceName = document.title;
-	const existingItems = parent.map(f => f._ref).filter(Boolean);
+	const existingItems = (parent || []).map(f => f._ref).filter(Boolean);
 	const fonts = await client.fetch('*[_type == "font" && typefaceName == $typefaceName && variableFont == true]', { typefaceName });
 	const relatedItemsFiltered = fonts.map(f => f._id).filter(Boolean);
 	return {
@@ -37,7 +37,7 @@ const subfamilyPreferredStyleFilter = async ({ getClient, document, parent }) =>
 	const typefaceName = document.title;
 	const fonts = await client.fetch('*[_type == "font" && typefaceName == $typefaceName && variableFont == false]', { typefaceName });
 	const relatedItemsFiltered = fonts.map(f => f._id).filter(Boolean);
-	const existingItems = parent.fonts.map(f => f._ref).filter(Boolean);
+	const existingItems = (parent.fonts || []).map(f => f._ref).filter(Boolean);
 	return {
 		filter: '(_id in $existingItems) && (_id in $relatedItemsFiltered)',
 		params: { existingItems, relatedItemsFiltered },
@@ -126,7 +126,7 @@ export function createStylesField({
 			preview: {
 				select: { title: 'title', fonts: 'fonts' },
 				prepare({ title, fonts }) {
-					return { title, subtitle: `${Object.keys(fonts || {}).length} fonts` };
+					return { title, subtitle: `${(fonts || []).length} fonts` };
 				},
 			},
 		} : {}),
@@ -208,7 +208,7 @@ export function createStylesField({
 			title: 'Regenerate Subfamilies',
 			name: 'regenerateSubfamilies',
 			type: 'string',
-			hidden: ({ parent }) => parent?.styles?.subfamilies?.length === 0 || parent?.styles?.fonts?.length === 0,
+			hidden: ({ parent }) => !parent?.subfamilies?.length || !parent?.fonts?.length,
 			description: 'Regenerates subfamily groups based on the fonts in this typeface.',
 			components: { input: RegenerateSubfamiliesComponent },
 		}),
