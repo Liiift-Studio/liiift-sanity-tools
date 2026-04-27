@@ -14,3 +14,11 @@ export const SCRIPTS = (process.env.SANITY_STUDIO_SCRIPTS || '').split(',').map(
 export const SCRIPTS_OBJECT = SCRIPTS.map((script) => {
 	return {title: script[0].toUpperCase() + script.slice(1), value: script}
 });
+
+/** Discount requirement types — comma-separated SANITY_STUDIO_DISCOUNT_REQ_TYPES env var */
+export const DISCOUNT_REQUIREMENT_TYPES = (process.env.SANITY_STUDIO_DISCOUNT_REQ_TYPES || '').split(',').map((type) => type.trim()).filter(Boolean);
+
+/** DISCOUNT_REQUIREMENT_TYPES as Sanity select option objects */
+export const DISCOUNT_REQUIREMENT_TYPES_OBJECT = DISCOUNT_REQUIREMENT_TYPES.map((type) => {
+	return {title: type[0].toUpperCase() + type.slice(1), value: type}
+});

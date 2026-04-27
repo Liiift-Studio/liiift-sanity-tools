@@ -28,7 +28,7 @@ export { default as generateFontFile } from './utils/generateFontFile.js';
 export { default as generateSubset } from './utils/generateSubset.js';
 export { default as parseVariableFontInstances } from './utils/parseVariableFontInstances.js';
 export { getEmptyFontKit } from './utils/getEmptyFontKit.js';
-export { SCRIPTS, SCRIPTS_OBJECT, HtmlDescription } from './utils/utils.js';
+export { SCRIPTS, SCRIPTS_OBJECT, HtmlDescription, DISCOUNT_REQUIREMENT_TYPES, DISCOUNT_REQUIREMENT_TYPES_OBJECT } from './utils/utils.js';
 
 // Font processing utilities
 export {
