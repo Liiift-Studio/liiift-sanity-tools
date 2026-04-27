@@ -1,5 +1,4 @@
 // Sanity schema factory function for the Styles object field — call createStylesField(options) to generate the field definition for a typeface document
-import { AdvancedRefArray } from 'sanity-advanced-reference-array';
 import { RegenerateSubfamiliesComponent } from '../components/RegenerateSubfamiliesComponent.jsx';
 
 // Conditionally includes a field definition in an array
@@ -102,7 +101,6 @@ export function createStylesField({
 			title: 'Fonts',
 			name: 'fonts',
 			type: 'array',
-			components: { input: AdvancedRefArray },
 			of: [{ type: 'reference', weak: true, to: [{ type: 'font' }] }],
 			options: {
 				sortable: true,
@@ -181,7 +179,6 @@ export function createStylesField({
 			title: 'Fonts',
 			name: 'fonts',
 			type: 'array',
-			components: { input: AdvancedRefArray },
 			of: [{
 				type: 'reference',
 				weak: true,
@@ -194,7 +191,6 @@ export function createStylesField({
 			title: 'Variable Fonts',
 			name: 'variableFont',
 			type: 'array',
-			components: { input: AdvancedRefArray },
 			of: [{
 				type: 'reference',
 				weak: true,
@@ -222,7 +218,6 @@ export function createStylesField({
 			title: 'Collections',
 			name: 'collections',
 			type: 'array',
-			components: { input: AdvancedRefArray },
 			of: [{ type: 'reference', weak: true, to: [{ type: 'collection' }] }],
 			options: { sortable: true },
 			validation: Rule => Rule.unique(),
@@ -231,7 +226,6 @@ export function createStylesField({
 			title: 'Pairs',
 			name: 'pairs',
 			type: 'array',
-			components: { input: AdvancedRefArray },
 			of: [{ type: 'reference', weak: true, to: [{ type: 'pair' }] }],
 			options: { sortable: true },
 			validation: Rule => Rule.unique(),
