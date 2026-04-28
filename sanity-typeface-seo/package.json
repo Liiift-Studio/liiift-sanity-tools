@@ -1,7 +1,7 @@
 {
-  "name": "sanity-typeface-fields",
-  "version": "1.1.0",
-  "description": "Standalone Sanity field definitions for typeface documents — import individually and place in any schema group",
+  "name": "sanity-typeface-seo",
+  "version": "1.0.0",
+  "description": "Standalone Sanity SEO field definitions for typeface documents — shared social/SEO object across foundries",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -25,7 +25,7 @@
     "sanity-studio",
     "typeface",
     "schema",
-    "fields",
+    "seo",
     "foundry"
   ],
   "author": "Quinn Keaveney <quinn@liiift.studio>",

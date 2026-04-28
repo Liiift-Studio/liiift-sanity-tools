@@ -1,6 +1,13 @@
-/** Standalone Sanity field definitions for typeface documents — import individually and place in any group */
+/** Standalone Sanity field definitions for typeface documents — import individually and place in any schema group */
 export { freeFontField } from './fields/freeFontField'
 export { includesSerifField } from './fields/includesSerifField'
 export { sortHeaviestFirstField } from './fields/sortHeaviestFirstField'
 export { buySectionColumnsField } from './fields/buySectionColumnsField'
 export { fontSizeMultiplierField } from './fields/fontSizeMultiplierField'
+export { createStateField } from './fields/stateField'
+export { classificationField } from './fields/classificationField'
+export { releaseDateField } from './fields/releaseDateField'
+export { heroField } from './fields/heroField'
+export { detailsField } from './fields/detailsField'
+export { specimenField } from './fields/specimenField'
+export { metadataField } from './fields/metadataField'
