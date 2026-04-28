@@ -3,7 +3,7 @@ export const seoFieldWithLinks = {
 	title: 'SEO',
 	name: 'social',
 	type: 'object' as const,
-	options: { collapsible: true, collapsed: true },
+	options: { collapsible: true },
 	fields: [
 		{
 			title: 'Title',
