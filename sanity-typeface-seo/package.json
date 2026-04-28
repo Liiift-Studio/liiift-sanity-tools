@@ -1,6 +1,6 @@
 {
   "name": "sanity-typeface-seo",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Standalone Sanity SEO field definitions for typeface documents — shared social/SEO object across foundries",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

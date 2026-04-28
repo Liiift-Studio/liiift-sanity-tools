@@ -52,20 +52,26 @@ function CheckRow({ label, status, detail }: { label: string; status: CheckStatu
 	)
 }
 
-/** Compact two-value comparison row used in diff and scan panels */
+/** Compact two-value comparison row — shows "No changes" inline if values match */
 function DiffRow({ label, live, draft }: { label: string; live: string | null; draft: string | null }) {
 	const changed = live !== draft
-	const tone = changed ? '#f59e0b' : '#43d675'
+	if (!changed) {
+		return (
+			<Flex align="center" gap={3} style={{ borderLeft: '3px solid #43d675', paddingLeft: 12 }}>
+				<Text size={1} weight="semibold" style={{ minWidth: 80 }}>{label}</Text>
+				<Text size={1} muted>No changes</Text>
+			</Flex>
+		)
+	}
 	return (
-		<Box style={{ borderLeft: `3px solid ${tone}`, paddingLeft: 12 }}>
+		<Box style={{ borderLeft: '3px solid #f59e0b', paddingLeft: 12 }}>
 			<Stack space={1}>
 				<Text size={1} weight="semibold">{label}</Text>
 				<Text size={1} muted>
 					Live: {live ? `"${live.length > 60 ? live.slice(0, 60) + '…' : live}"` : '(empty)'}
 				</Text>
 				<Text size={1} muted>
-					Draft: {draft ? `"${draft.length > 60 ? draft.slice(0, 60) + '…' : draft}"` : '(empty)'}
-					{changed ? ' ↑' : ' ✓'}
+					Draft: {draft ? `"${draft.length > 60 ? draft.slice(0, 60) + '…' : draft}"` : '(empty)'} ↑
 				</Text>
 			</Stack>
 		</Box>
@@ -87,31 +93,33 @@ function SeoChecklist({ value }: { value: SeoValue }) {
 
 	return (
 		<Card padding={4} radius={2} tone={scoreTone} border>
-			<Stack space={4}>
+			<Stack space={3}>
 				<Flex align="center" justify="space-between">
 					<Text size={1} weight="semibold">SEO Checklist</Text>
 					<Text size={1} muted>{score}/4</Text>
 				</Flex>
-				<CheckRow
-					label="Title"
-					status={titleStatus}
-					detail={titleLen === 0 ? 'Empty — add a title (50–60 chars optimal)' : titleStatus === 'good' ? `${titleLen} chars — good` : `${titleLen} chars — aim for 50–60`}
-				/>
-				<CheckRow
-					label="Description"
-					status={descStatus}
-					detail={descLen === 0 ? 'Empty — add a description (150–160 chars optimal)' : descStatus === 'good' ? `${descLen} chars — good` : `${descLen} chars — aim for 150–160`}
-				/>
-				<CheckRow
-					label="Keywords"
-					status={keywordsStatus}
-					detail={keywordsStatus === 'good' ? 'Keywords present' : 'No keywords set'}
-				/>
-				<CheckRow
-					label="Social image"
-					status={imageStatus}
-					detail={imageStatus === 'good' ? 'Image set' : 'No image — defaults to site image'}
-				/>
+				<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+					<CheckRow
+						label="Title"
+						status={titleStatus}
+						detail={titleLen === 0 ? 'Empty — add a title (50–60 chars optimal)' : titleStatus === 'good' ? `${titleLen} chars — good` : `${titleLen} chars — aim for 50–60`}
+					/>
+					<CheckRow
+						label="Description"
+						status={descStatus}
+						detail={descLen === 0 ? 'Empty — add a description (150–160 chars optimal)' : descStatus === 'good' ? `${descLen} chars — good` : `${descLen} chars — aim for 150–160`}
+					/>
+					<CheckRow
+						label="Keywords"
+						status={keywordsStatus}
+						detail={keywordsStatus === 'good' ? 'Keywords present' : 'No keywords set'}
+					/>
+					<CheckRow
+						label="Social image"
+						status={imageStatus}
+						detail={imageStatus === 'good' ? 'Image set' : 'No image — defaults to site image'}
+					/>
+				</div>
 			</Stack>
 		</Card>
 	)
@@ -158,7 +166,7 @@ function PublishedDiff({ draft, published, loading }: { draft: SeoValue; publish
 						{changedCount === 0 ? 'No changes' : `${changedCount} field${changedCount > 1 ? 's' : ''} will change`}
 					</Text>
 				</Flex>
-				{fields.map(f => (
+				{changedCount > 0 && fields.map(f => (
 					<DiffRow key={f.label} label={f.label} live={f.live} draft={f.draft} />
 				))}
 			</Stack>
