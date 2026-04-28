@@ -27,18 +27,29 @@ export const VersionBadgeLayout = ({ renderDefault, packages = [], ...props }) =
 		/** Updates badge visibility based on current URL. */
 		const checkVisibility = () => setVisible(isStructureRoot());
 
-		// Patch history.pushState to emit a custom event on SPA navigation
+		// Patch both pushState and replaceState — Sanity uses replaceState for its initial
+		// navigation to /structure, so patching only pushState misses the first route change.
 		const origPushState = history.pushState.bind(history);
+		const origReplaceState = history.replaceState.bind(history);
+
 		history.pushState = function (...args) {
 			origPushState(...args);
+			window.dispatchEvent(new Event('locationchange'));
+		};
+		history.replaceState = function (...args) {
+			origReplaceState(...args);
 			window.dispatchEvent(new Event('locationchange'));
 		};
 
 		window.addEventListener('locationchange', checkVisibility);
 		window.addEventListener('popstate', checkVisibility);
 
+		// Run once immediately in case the URL was already updated before this effect ran
+		checkVisibility();
+
 		return () => {
 			history.pushState = origPushState;
+			history.replaceState = origReplaceState;
 			window.removeEventListener('locationchange', checkVisibility);
 			window.removeEventListener('popstate', checkVisibility);
 		};

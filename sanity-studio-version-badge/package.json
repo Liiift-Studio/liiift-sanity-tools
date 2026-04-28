@@ -1,6 +1,6 @@
 {
 	"name": "@liiift-studio/sanity-studio-version-badge",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Sanity Studio plugin — shows installed @liiift-studio package versions in a bottom-right badge on the structure root page.",
 	"license": "MIT",
 	"author": "Liiift Studio",
