@@ -1,5 +1,5 @@
 {
-  "name": "sanity-typeface-seo",
+  "name": "@liiift-studio/sanity-typeface-seo",
   "version": "1.2.2",
   "description": "Standalone Sanity SEO field definitions for typeface documents — shared social/SEO object across foundries",
   "main": "dist/index.js",

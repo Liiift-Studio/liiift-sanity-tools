@@ -1,5 +1,5 @@
 {
-  "name": "sanity-typeface-fields",
+  "name": "@liiift-studio/sanity-typeface-fields",
   "version": "1.1.1",
   "description": "Standalone Sanity field definitions for typeface documents — import individually and place in any schema group",
   "main": "dist/index.js",
