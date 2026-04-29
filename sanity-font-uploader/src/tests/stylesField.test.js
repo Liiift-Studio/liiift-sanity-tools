@@ -1,7 +1,7 @@
 // Tests for createStylesField — schema structure, conditional fields, hidden logic, filter null guards
 import { describe, it, expect, vi } from 'vitest';
 
-vi.mock('sanity-advanced-reference-array', () => ({ AdvancedRefArray: 'AdvancedRefArray' }));
+vi.mock('@liiift-studio/sanity-advanced-reference-array', () => ({ AdvancedRefArray: 'AdvancedRefArray' }));
 vi.mock('../components/RegenerateSubfamiliesComponent.jsx', () => ({ RegenerateSubfamiliesComponent: 'RegenerateSubfamiliesComponent' }));
 
 import { createStylesField } from '../schema/stylesField.js';

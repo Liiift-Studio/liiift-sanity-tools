@@ -6,5 +6,5 @@ export default defineConfig({
 	dts: false,
 	clean: true,
 	jsx: true,
-	external: ['react', 'react-dom', 'sanity', '@sanity/ui', '@sanity/icons', 'sanity-advanced-reference-array'],
+	external: ['react', 'react-dom', 'sanity', '@sanity/ui', '@sanity/icons', '@liiift-studio/sanity-advanced-reference-array'],
 })

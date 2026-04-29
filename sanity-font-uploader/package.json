@@ -60,10 +60,10 @@
 		"@sanity/ui": ">=3",
 		"react": ">=18",
 		"sanity": ">=3",
-		"sanity-advanced-reference-array": ">=1"
+		"@liiift-studio/sanity-advanced-reference-array": ">=1"
 	},
 	"peerDependenciesMeta": {
-		"sanity-advanced-reference-array": {
+		"@liiift-studio/sanity-advanced-reference-array": {
 			"optional": true
 		}
 	},

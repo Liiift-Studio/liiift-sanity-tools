@@ -1,5 +1,5 @@
 // Sanity schema factory function for the Styles object field — call createStylesField(options) to generate the field definition for a typeface document
-import { AdvancedRefArray } from 'sanity-advanced-reference-array';
+import { AdvancedRefArray } from '@liiift-studio/sanity-advanced-reference-array';
 import { RegenerateSubfamiliesComponent } from '../components/RegenerateSubfamiliesComponent.jsx';
 
 // Conditionally includes a field definition in an array
