@@ -41,10 +41,10 @@ const compareVersions = (packages) => {
 	const stored = readCookie();
 	const currentVersions = Object.fromEntries(packages.map(({ name, version }) => [name, version]));
 
-	// First visit — write cookie silently; only show on localhost
+	// First visit — write cookie, show badge without any "new" labels
 	if (!stored) {
 		writeCookie({ versions: currentVersions, seenAt: Date.now() });
-		return { updatedPackages: new Set(), shouldShow: local };
+		return { updatedPackages: new Set(), shouldShow: true };
 	}
 
 	const { versions: storedVersions = {}, seenAt = 0 } = stored;
