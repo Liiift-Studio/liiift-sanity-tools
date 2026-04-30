@@ -1,6 +1,6 @@
 {
 	"name": "@liiift-studio/sanity-key-value-input",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Sanity Studio input component for ordered key-value string pair editing.",
 	"license": "MIT",
 	"author": "Liiift Studio",
@@ -19,7 +19,8 @@
 			"import": "./dist/index.mjs",
 			"require": "./dist/index.js",
 			"default": "./dist/index.mjs"
-		}
+		},
+		"./package.json": "./package.json"
 	},
 	"files": [
 		"dist",

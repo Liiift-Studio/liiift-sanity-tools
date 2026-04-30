@@ -1,6 +1,6 @@
 {
 	"name": "@liiift-studio/sanity-foundry-constants",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Shared environment-driven constants for Liiift foundry Sanity studios.",
 	"license": "MIT",
 	"author": "Liiift Studio",
@@ -20,7 +20,8 @@
 			"import": "./dist/index.mjs",
 			"require": "./dist/index.js",
 			"default": "./dist/index.mjs"
-		}
+		},
+		"./package.json": "./package.json"
 	},
 	"files": [
 		"dist",

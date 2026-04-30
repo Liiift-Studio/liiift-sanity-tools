@@ -1,6 +1,6 @@
 {
 	"name": "@liiift-studio/sanity-font-manager",
-	"version": "2.3.15",
+	"version": "2.3.16",
 	"description": "Sanity Studio plugin — full font management suite with batch upload, format conversion, metadata extraction, CSS generation, collection/pair generation, and script variant support. Supports Sanity v3, v4, and v5.",
 	"license": "MIT",
 	"author": "Liiift Studio",
@@ -27,7 +27,8 @@
 			"import": "./dist/index.mjs",
 			"require": "./dist/index.js",
 			"default": "./dist/index.mjs"
-		}
+		},
+		"./package.json": "./package.json"
 	},
 	"files": [
 		"dist",
