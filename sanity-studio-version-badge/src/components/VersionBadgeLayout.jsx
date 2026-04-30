@@ -6,6 +6,11 @@ import { Badge, Card, Flex, Stack, Text } from '@sanity/ui';
 const COOKIE_NAME = 'liiift_pkg_versions';
 const SHOW_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 
+const isLocalhost = () => {
+	const { hostname } = window.location;
+	return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+};
+
 /** Read and parse the version cookie, or return null. */
 const readCookie = () => {
 	const match = document.cookie.split('; ').find(r => r.startsWith(COOKIE_NAME + '='));
@@ -25,32 +30,41 @@ const writeCookie = (data) => {
 
 /**
  * Diffs current package versions against the stored cookie.
- * Writes an updated cookie if any version changed.
- * Returns which packages are newly updated and whether the badge should show.
+ *
+ * First visit (no cookie): writes versions silently, returns shouldShow=false (localhost overrides).
+ * Subsequent visits: shows badge if versions changed or >7 days since last shown; resets seenAt when shown.
  *
  * @param {{ name: string, version: string }[]} packages
  */
 const compareVersions = (packages) => {
+	const local = isLocalhost();
 	const stored = readCookie();
-	const storedVersions = stored?.versions ?? {};
-	const updatedAt = stored?.updatedAt ?? 0;
+	const currentVersions = Object.fromEntries(packages.map(({ name, version }) => [name, version]));
+
+	// First visit — write cookie silently; only show on localhost
+	if (!stored) {
+		writeCookie({ versions: currentVersions, seenAt: Date.now() });
+		return { updatedPackages: new Set(), shouldShow: local };
+	}
+
+	const { versions: storedVersions = {}, seenAt = 0 } = stored;
 
 	const updatedPackages = new Set();
-	const currentVersions = {};
-
 	for (const { name, version } of packages) {
-		currentVersions[name] = version;
 		if (storedVersions[name] !== version) updatedPackages.add(name);
 	}
 
-	if (updatedPackages.size > 0) {
-		writeCookie({ versions: currentVersions, updatedAt: Date.now() });
+	const hasUpdates = updatedPackages.size > 0;
+	const pastWindow = (Date.now() - seenAt) > SHOW_DURATION_MS;
+
+	// Reset seenAt whenever the badge is due to show on production
+	if (hasUpdates || pastWindow) {
+		writeCookie({ versions: currentVersions, seenAt: Date.now() });
 	}
 
 	return {
 		updatedPackages,
-		// Show if there are new versions now, or if the last update was within the past 7 days
-		shouldShow: updatedPackages.size > 0 || (Date.now() - updatedAt) < SHOW_DURATION_MS,
+		shouldShow: local || hasUpdates || pastWindow,
 	};
 };
 
@@ -65,8 +79,13 @@ const isStructureRoot = () => {
 
 /**
  * Studio layout component that injects a fixed bottom-right version badge.
- * Only visible on the structure root and within 7 days of a package update.
- * Packages that changed since the last visit are labelled "new".
+ *
+ * Visibility rules:
+ * - Localhost: always visible on the structure root
+ * - Production: visible on structure root only when packages changed or >7 days since last shown
+ * - First visit: badge is suppressed; versions are recorded silently for future diffing
+ *
+ * Packages updated since the last visit are labelled "new".
  *
  * @param {Object} props
  * @param {Function} props.renderDefault - Sanity-provided renderer for the default studio layout
