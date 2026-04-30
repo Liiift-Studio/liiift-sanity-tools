@@ -29,10 +29,13 @@ const writeCookie = (data) => {
 };
 
 /**
- * Diffs current package versions against the stored cookie.
+ * Diffs current versions against the stored cookie.
+ * Returns shouldShow and which packages need an npm publish-date check.
  *
- * First visit (no cookie): writes versions silently, returns shouldShow=false (localhost overrides).
- * Subsequent visits: shows badge if versions changed or >7 days since last shown; resets seenAt when shown.
+ * packagesToCheck is:
+ *   - all packages on first visit (no cookie)
+ *   - only changed packages when a version bump is detected
+ *   - empty on 7-day reminder visits (no version changes, no "new" labels needed)
  *
  * @param {{ name: string, version: string }[]} packages
  */
@@ -41,31 +44,51 @@ const compareVersions = (packages) => {
 	const stored = readCookie();
 	const currentVersions = Object.fromEntries(packages.map(({ name, version }) => [name, version]));
 
-	// First visit — write cookie, show badge without any "new" labels
+	// First visit — write cookie, show badge; check all packages against npm
 	if (!stored) {
 		writeCookie({ versions: currentVersions, seenAt: Date.now() });
-		return { updatedPackages: new Set(), shouldShow: true };
+		return { shouldShow: true, packagesToCheck: packages };
 	}
 
 	const { versions: storedVersions = {}, seenAt = 0 } = stored;
-
-	const updatedPackages = new Set();
-	for (const { name, version } of packages) {
-		if (storedVersions[name] !== version) updatedPackages.add(name);
-	}
-
-	const hasUpdates = updatedPackages.size > 0;
+	const changedPackages = packages.filter(({ name, version }) => storedVersions[name] !== version);
+	const hasUpdates = changedPackages.length > 0;
 	const pastWindow = (Date.now() - seenAt) > SHOW_DURATION_MS;
 
-	// Reset seenAt whenever the badge is due to show on production
 	if (hasUpdates || pastWindow) {
 		writeCookie({ versions: currentVersions, seenAt: Date.now() });
 	}
 
 	return {
-		updatedPackages,
 		shouldShow: local || hasUpdates || pastWindow,
+		// 7-day reminder has no changed packages, so no "new" labels needed
+		packagesToCheck: changedPackages,
 	};
+};
+
+/**
+ * Fetches publish dates from the npm registry in parallel.
+ * Returns a Set of package names published within the last 7 days.
+ *
+ * @param {{ name: string, version: string }[]} packages
+ * @returns {Promise<Set<string>>}
+ */
+const fetchRecentlyPublished = async (packages) => {
+	const cutoff = Date.now() - SHOW_DURATION_MS;
+	const results = await Promise.all(
+		packages.map(async ({ name, version }) => {
+			try {
+				const res = await fetch(`https://registry.npmjs.org/${name}`);
+				if (!res.ok) return null;
+				const data = await res.json();
+				const publishedAt = data.time?.[version];
+				return publishedAt && new Date(publishedAt).getTime() > cutoff ? name : null;
+			} catch {
+				return null;
+			}
+		})
+	);
+	return new Set(results.filter(Boolean));
 };
 
 /**
@@ -83,9 +106,9 @@ const isStructureRoot = () => {
  * Visibility rules:
  * - Localhost: always visible on the structure root
  * - Production: visible on structure root only when packages changed or >7 days since last shown
- * - First visit: badge is suppressed; versions are recorded silently for future diffing
+ * - First visit: badge shows without labels; npm is checked and "new" labels appear async
  *
- * Packages updated since the last visit are labelled "new".
+ * "new" labels appear only on packages published to npm within the last 7 days.
  *
  * @param {Object} props
  * @param {Function} props.renderDefault - Sanity-provided renderer for the default studio layout
@@ -93,7 +116,14 @@ const isStructureRoot = () => {
  */
 export const VersionBadgeLayout = ({ renderDefault, packages = [], ...props }) => {
 	const [onStructureRoot, setOnStructureRoot] = useState(isStructureRoot);
-	const [{ updatedPackages, shouldShow }] = useState(() => compareVersions(packages));
+	const [{ shouldShow, packagesToCheck }] = useState(() => compareVersions(packages));
+	const [recentPackages, setRecentPackages] = useState(new Set());
+
+	// Fetch npm publish dates for packages that need checking
+	useEffect(() => {
+		if (packagesToCheck.length === 0) return;
+		fetchRecentlyPublished(packagesToCheck).then(setRecentPackages);
+	}, []);
 
 	useEffect(() => {
 		const checkVisibility = () => setOnStructureRoot(isStructureRoot());
@@ -146,7 +176,7 @@ export const VersionBadgeLayout = ({ renderDefault, packages = [], ...props }) =
 					<Stack space={2}>
 						{packages.map(({ name, version }) => {
 							const displayName = name.replace('@liiift-studio/', '');
-							const isNew = updatedPackages.has(name);
+							const isNew = recentPackages.has(name);
 							return (
 								<Flex key={name} align="center" gap={2}>
 									<Text size={1} muted style={{ fontFamily: 'monospace' }}>
