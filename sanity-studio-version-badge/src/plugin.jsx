@@ -9,7 +9,7 @@ import { VersionBadgeLayout } from './components/VersionBadgeLayout.jsx';
  * The badge is only visible on the structure root (no document open).
  *
  * @param {Object} options
- * @param {[string, string][]} options.packages - Array of [packageName, version] tuples to display.
+ * @param {{ name: string, version: string }[]} options.packages - Array of imported package.json objects.
  */
 export const liiiftVersionBadge = (options = {}) => definePlugin({
 	name: '@liiift-studio/sanity-studio-version-badge',

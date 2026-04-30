@@ -18,7 +18,7 @@ const isStructureRoot = () => {
  *
  * @param {Object} props
  * @param {Function} props.renderDefault - Sanity-provided renderer for the default studio layout
- * @param {[string, string][]} props.packages - Array of [packageName, version] tuples to display
+ * @param {{ name: string, version: string }[]} props.packages - Array of imported package.json objects
  */
 export const VersionBadgeLayout = ({ renderDefault, packages = [], ...props }) => {
 	const [visible, setVisible] = useState(isStructureRoot);
@@ -73,14 +73,13 @@ export const VersionBadgeLayout = ({ renderDefault, packages = [], ...props }) =
 					}}
 				>
 					<Stack space={2}>
-						{packages.map(([name, version]) => {
+						{packages.map(({ name, version }) => {
 							const displayName = name.replace('@liiift-studio/', '');
-							const displayVersion = version.replace(/^[\^~]/, '');
 							return (
 								<Text key={name} size={1} muted style={{ fontFamily: 'monospace' }}>
 									{displayName}
 									<span style={{ opacity: 0.5 }}>@</span>
-									{displayVersion}
+									{version}
 								</Text>
 							);
 						})}
