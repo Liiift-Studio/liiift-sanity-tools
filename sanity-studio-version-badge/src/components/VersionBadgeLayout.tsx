@@ -1,7 +1,7 @@
 // Layout wrapper that renders the studio plus a fixed version badge on the structure root
 
 import React, {useState, useEffect} from 'react'
-import {Badge, Card, Flex, Stack, Text} from '@sanity/ui'
+import {Badge, Box, Button, Card, Flex, Stack, Text, Tooltip} from '@sanity/ui'
 
 const COOKIE_NAME = 'liiift_pkg_versions'
 /** Duration window for showing the badge on revisit (7 days in ms) */
@@ -23,6 +23,12 @@ interface CookieData {
 interface CompareVersionsResult {
 	shouldShow: boolean
 	packagesToCheck: PackageInfo[]
+}
+
+/** Result of the npm registry fetch */
+interface NpmFetchResult {
+	recentPackages: Set<string>
+	descriptions: Record<string, string>
 }
 
 /** Props for the VersionBadgeLayout component */
@@ -92,25 +98,38 @@ const compareVersions = (packages: PackageInfo[]): CompareVersionsResult => {
 }
 
 /**
- * Fetches publish dates from the npm registry in parallel.
- * Returns a Set of package names published within the last 7 days.
+ * Fetches npm registry data for all packages in parallel.
+ * Returns recently published names (within 7 days, limited to packagesToCheck) and a descriptions map.
  */
-const fetchRecentlyPublished = async (packages: PackageInfo[]): Promise<Set<string>> => {
+const fetchNpmData = async (
+	allPackages: PackageInfo[],
+	packagesToCheck: PackageInfo[],
+): Promise<NpmFetchResult> => {
 	const cutoff = Date.now() - SHOW_DURATION_MS
+	const checkSet = new Set(packagesToCheck.map((p) => p.name))
+
 	const results = await Promise.all(
-		packages.map(async ({name, version}) => {
+		allPackages.map(async ({name, version}) => {
 			try {
 				const res = await fetch(`https://registry.npmjs.org/${name}`)
-				if (!res.ok) return null
-				const data = (await res.json()) as {time?: Record<string, string>}
+				if (!res.ok) return {name, recent: false, description: ''}
+				const data = (await res.json()) as {time?: Record<string, string>; description?: string}
 				const publishedAt = data.time?.[version]
-				return publishedAt && new Date(publishedAt).getTime() > cutoff ? name : null
+				const recent =
+					checkSet.has(name) && !!publishedAt && new Date(publishedAt).getTime() > cutoff
+				return {name, recent, description: data.description ?? ''}
 			} catch {
-				return null
+				return {name, recent: false, description: ''}
 			}
 		}),
 	)
-	return new Set(results.filter((r): r is string => r !== null))
+
+	return {
+		recentPackages: new Set(results.filter((r) => r.recent).map((r) => r.name)),
+		descriptions: Object.fromEntries(
+			results.filter((r) => r.description).map((r) => [r.name, r.description]),
+		),
+	}
 }
 
 /**
@@ -129,18 +148,27 @@ const isStructureRoot = (): boolean => {
  * - Localhost: always visible on the structure root
  * - Production: visible on structure root only when packages changed or >7 days since last shown
  * - "new" labels appear only on packages published to npm within the last 7 days
+ * - Tooltips show the npm description for each package (fetched from the registry)
  */
-export const VersionBadgeLayout = ({renderDefault, packages = [], ...props}: VersionBadgeLayoutProps) => {
+export const VersionBadgeLayout = ({
+	renderDefault,
+	packages = [],
+	...props
+}: VersionBadgeLayoutProps) => {
 	const [onStructureRoot, setOnStructureRoot] = useState<boolean>(isStructureRoot)
 	const [{shouldShow, packagesToCheck}] = useState<CompareVersionsResult>(() =>
 		compareVersions(packages),
 	)
 	const [recentPackages, setRecentPackages] = useState<Set<string>>(new Set())
+	const [descriptions, setDescriptions] = useState<Record<string, string>>({})
+	const [dismissed, setDismissed] = useState(false)
 
-	// Fetch npm publish dates for packages that need checking
+	// Fetch npm publish dates and descriptions for all packages
 	useEffect(() => {
-		if (packagesToCheck.length === 0) return
-		fetchRecentlyPublished(packagesToCheck).then(setRecentPackages)
+		fetchNpmData(packages, packagesToCheck).then(({recentPackages, descriptions}) => {
+			setRecentPackages(recentPackages)
+			setDescriptions(descriptions)
+		})
 	}, [])
 
 	useEffect(() => {
@@ -172,7 +200,7 @@ export const VersionBadgeLayout = ({renderDefault, packages = [], ...props}: Ver
 		}
 	}, [])
 
-	const visible = onStructureRoot && shouldShow && packages.length > 0
+	const visible = onStructureRoot && shouldShow && packages.length > 0 && !dismissed
 
 	return (
 		<>
@@ -187,30 +215,51 @@ export const VersionBadgeLayout = ({renderDefault, packages = [], ...props}: Ver
 						bottom: 16,
 						right: 16,
 						zIndex: 9999,
-						pointerEvents: 'none',
 						minWidth: 180,
 					}}
 				>
-					<Stack space={2}>
-						{packages.map(({name, version}) => {
-							const displayName = name.replace('@liiift-studio/', '')
-							const isNew = recentPackages.has(name)
-							return (
-								<Flex key={name} align="center" gap={2}>
-									<Text size={1} muted style={{fontFamily: 'monospace'}}>
-										{displayName}
-										<span style={{opacity: 0.5}}>@</span>
-										{version}
-									</Text>
-									{isNew && (
-										<Badge tone="positive" size={0}>
-											new
-										</Badge>
-									)}
-								</Flex>
-							)
-						})}
-					</Stack>
+					<Flex align="flex-start" gap={2}>
+						<Stack space={2} flex={1}>
+							{packages.map(({name, version}) => {
+								const displayName = name.replace('@liiift-studio/', '')
+								const isNew = recentPackages.has(name)
+								const desc = descriptions[name]
+								return (
+									<Tooltip
+										key={name}
+										disabled={!desc}
+										content={
+											<Box padding={2} style={{maxWidth: 240}}>
+												<Text size={1}>{desc}</Text>
+											</Box>
+										}
+										placement="left"
+										portal
+									>
+										<Flex align="center" gap={2}>
+											<Text size={1} muted style={{fontFamily: 'monospace'}}>
+												{displayName}
+												<span style={{opacity: 0.5}}>@</span>
+												{version}
+											</Text>
+											{isNew && (
+												<Badge tone="positive" size={0}>
+													new
+												</Badge>
+											)}
+										</Flex>
+									</Tooltip>
+								)
+							})}
+						</Stack>
+						<Button
+							mode="bleed"
+							padding={1}
+							text="×"
+							onClick={() => setDismissed(true)}
+							style={{flexShrink: 0, marginTop: -2}}
+						/>
+					</Flex>
 				</Card>
 			)}
 		</>
