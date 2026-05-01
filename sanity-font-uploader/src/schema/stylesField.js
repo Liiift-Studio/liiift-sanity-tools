@@ -1,6 +1,24 @@
 // Sanity schema factory function for the Styles object field — call createStylesField(options) to generate the field definition for a typeface document
+import React from 'react';
 import { AdvancedRefArray } from '@liiift-studio/sanity-advanced-reference-array';
 import { RegenerateSubfamiliesComponent } from '../components/RegenerateSubfamiliesComponent.jsx';
+
+// Returns extra GROQ params scoped to the current typeface document
+const typefaceParams = (doc) => ({ typefaceName: doc?.title || '' });
+
+// AdvancedRefArray wrapper — limits search results to fonts belonging to this typeface
+const FontsRefArray = (props) => React.createElement(AdvancedRefArray, {
+	...props,
+	filterGroq: 'lower(typefaceName) == lower($typefaceName)',
+	filterParams: typefaceParams,
+});
+
+// AdvancedRefArray wrapper — limits search results to variable fonts belonging to this typeface
+const VariableFontsRefArray = (props) => React.createElement(AdvancedRefArray, {
+	...props,
+	filterGroq: 'lower(typefaceName) == lower($typefaceName) && variableFont == true',
+	filterParams: typefaceParams,
+});
 
 // Conditionally includes a field definition in an array
 const field = (condition, def) => condition ? [def] : [];
@@ -102,7 +120,7 @@ export function createStylesField({
 			title: 'Fonts',
 			name: 'fonts',
 			type: 'array',
-			components: { input: AdvancedRefArray },
+			components: { input: FontsRefArray },
 			of: [{ type: 'reference', weak: true, to: [{ type: 'font' }] }],
 			options: {
 				sortable: true,
@@ -181,7 +199,7 @@ export function createStylesField({
 			title: 'Fonts',
 			name: 'fonts',
 			type: 'array',
-			components: { input: AdvancedRefArray },
+			components: { input: FontsRefArray },
 			of: [{
 				type: 'reference',
 				weak: true,
@@ -194,7 +212,7 @@ export function createStylesField({
 			title: 'Variable Fonts',
 			name: 'variableFont',
 			type: 'array',
-			components: { input: AdvancedRefArray },
+			components: { input: VariableFontsRefArray },
 			of: [{
 				type: 'reference',
 				weak: true,
