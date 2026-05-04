@@ -1,7 +1,9 @@
-// Entry point for @liiift-studio/sanity-font-uploader v2 — exports all font uploader components and utilities
+// Entry point for @liiift-studio/sanity-font-manager — exports all font manager components, hooks, and utilities
 
 // Components
 export { BatchUploadFonts } from './components/BatchUploadFonts.jsx';
+export { GenerateCollectionsPairsComponent } from './components/GenerateCollectionsPairsComponent.jsx';
+export { UpdateScriptsComponent } from './components/UpdateScriptsComponent.jsx';
 export { SingleUploaderTool } from './components/SingleUploaderTool.jsx';
 export { RegenerateSubfamiliesComponent } from './components/RegenerateSubfamiliesComponent.jsx';
 export { UploadScriptsComponent } from './components/UploadScriptsComponent.jsx';
@@ -9,9 +11,17 @@ export { FontScriptUploaderComponent } from './components/FontScriptUploaderComp
 export { default as StatusDisplay } from './components/StatusDisplay.jsx';
 export { default as PriceInput } from './components/PriceInput.jsx';
 export { default as UploadButton } from './components/UploadButton.jsx';
+export { KeyValueInput } from './components/KeyValueInput.jsx';
+export { KeyValueReferenceInput } from './components/KeyValueReferenceInput.jsx';
+export { VariableInstanceReferencesInput } from './components/VariableInstanceReferencesInput.jsx';
+export { PrimaryCollectionGeneratorTypeface } from './components/PrimaryCollectionGeneratorTypeface.jsx';
+export { SetOTF } from './components/SetOTF.jsx';
+export { StyleCountInput } from './components/StyleCountInput.jsx';
+export { NestedObjectArraySelector } from './components/NestedObjectArraySelector.jsx';
 
 // Hooks
 export { useSanityClient } from './hooks/useSanityClient.js';
+export { useNestedObjects } from './hooks/useNestedObjects.js';
 
 // Core utilities
 export { default as generateCssFile } from './utils/generateCssFile.js';
@@ -20,7 +30,7 @@ export { default as generateFontFile } from './utils/generateFontFile.js';
 export { default as generateSubset } from './utils/generateSubset.js';
 export { default as parseVariableFontInstances } from './utils/parseVariableFontInstances.js';
 export { getEmptyFontKit } from './utils/getEmptyFontKit.js';
-export { SCRIPTS, SCRIPTS_OBJECT, HtmlDescription } from './utils/utils.js';
+export { SCRIPTS, SCRIPTS_OBJECT, HtmlDescription, DISCOUNT_REQUIREMENT_TYPES, DISCOUNT_REQUIREMENT_TYPES_OBJECT } from './utils/utils.js';
 
 // Font processing utilities
 export {
@@ -44,6 +54,12 @@ export { updateTypefaceDocument } from './utils/updateTypefaceDocument.js';
 export { renameFontDocuments } from './utils/regenerateFontData.js';
 export { updateFontPrices } from './utils/updateFontPrices.js';
 export { sanitizeForSanityId } from './utils/sanitizeForSanityId.js';
+
+// Schema field definitions
+export { openTypeField } from './schema/openTypeField.js';
+export { styleCountField } from './schema/styleCountField.js';
+export { stylisticSetField } from './schema/stylisticSetField.js';
+export { createStylesField } from './schema/stylesField.js';
 
 // Keyword utilities
 export {

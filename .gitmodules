@@ -31,9 +31,6 @@
 [submodule "sanity-search-and-delete"]
 	path = sanity-search-and-delete
 	url = https://github.com/Liiift-Studio/sanity-search-and-delete.git
-[submodule "sanity-studio-utilities"]
-	path = sanity-studio-utilities
-	url = https://github.com/Liiift-Studio/sanity-studio-utilities.git
 [submodule "sanity-sales-portal"]
 	path = sanity-sales-portal
 	url = https://github.com/Liiift-Studio/sanity-sales-portal.git

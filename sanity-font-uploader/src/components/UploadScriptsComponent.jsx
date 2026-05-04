@@ -1,4 +1,4 @@
-// Script font uploader: processes and uploads font files per writing system (e.g. Cyrillic, Greek, Arabic)
+// Batch uploader for script-specific font variants across multiple fonts at once
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, Flex, Grid, Stack, Text, TextInput, MenuButton, Menu, MenuItem, Select } from '@sanity/ui';

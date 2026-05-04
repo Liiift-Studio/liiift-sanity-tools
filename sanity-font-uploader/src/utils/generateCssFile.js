@@ -1,4 +1,4 @@
-// Generates a CSS asset from a WOFF2 file: an inline base64 @font-face plus a category-appropriate, cross-platform tuned fallback @font-face for CLS reduction
+// Builds a @font-face CSS file from a WOFF2 blob — URL or base64 src, variable font axis descriptors, metric-tuned fallback @font-face for CLS reduction
 import base64 from 'base-64';
 import { Buffer } from 'buffer';
 import * as fontkit from 'fontkit';
@@ -29,7 +29,7 @@ function _arrayBufferToBase64(buffer) {
  * @param {Object} font - fontkit font instance
  * @returns {{ descriptors: string, skipped: string[] }}
  */
-function buildVFDescriptors(font) {
+export function buildVFDescriptors(font) {
 	const cssAxes = {}
 	const skipped = []
 	try {

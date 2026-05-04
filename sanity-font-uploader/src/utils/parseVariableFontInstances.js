@@ -1,4 +1,4 @@
-// Utility for parsing variable font instances and matching them with static font documents
+// Resolves named variable font instances into Sanity font document references, creating documents for missing instances
 
 import { nanoid } from 'nanoid';
 import { expandAbbreviations } from './generateKeywords';

@@ -1,4 +1,4 @@
-// Utility to sanitize strings into valid Sanity document IDs
+// Converts arbitrary strings into valid Sanity document IDs (lowercase, hyphens, no special characters)
 import slugify from 'slugify';
 
 /**

@@ -1,4 +1,4 @@
-// Utility functions for uploading font files to Sanity and creating/updating font documents
+// Core batch upload orchestrator — uploads each format to Sanity, generates CSS and metadata, then creates or updates font documents
 
 import { nanoid } from 'nanoid';
 import generateCssFile from './generateCssFile';

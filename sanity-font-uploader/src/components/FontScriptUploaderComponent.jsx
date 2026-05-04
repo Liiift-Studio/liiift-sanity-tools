@@ -1,4 +1,4 @@
-// Per-script font file manager: Upload/Build/Delete controls for each language variant (TTF, OTF, WOFF, WOFF2, EOT, SVG, CSS)
+// Script-aware uploader for per-script font file variants (Latin, Arabic, Hebrew, etc.) stored in scriptFileInput
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Stack, Flex, Text, Button } from '@sanity/ui';

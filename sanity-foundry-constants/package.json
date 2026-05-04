@@ -1,0 +1,48 @@
+{
+	"name": "@liiift-studio/sanity-foundry-constants",
+	"version": "1.0.1",
+	"description": "Shared environment-driven constants for Liiift foundry Sanity studios.",
+	"license": "MIT",
+	"author": "Liiift Studio",
+	"keywords": [
+		"sanity",
+		"sanity-plugin",
+		"sanity-studio",
+		"constants",
+		"scripts",
+		"discount"
+	],
+	"main": "./dist/index.js",
+	"module": "./dist/index.mjs",
+	"exports": {
+		".": {
+			"source": "./src/index.ts",
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.js",
+			"default": "./dist/index.mjs"
+		},
+		"./package.json": "./package.json"
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch",
+		"prepublishOnly": "npm run build"
+	},
+	"peerDependencies": {
+		"react": ">=18"
+	},
+	"devDependencies": {
+		"@types/react": "^19",
+		"react": "^19",
+		"tsup": "^8",
+		"typescript": "^5"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Liiift-Studio/sanity-tools.git"
+	}
+}

@@ -1,0 +1,52 @@
+{
+	"name": "@liiift-studio/sanity-studio-version-badge",
+	"version": "2.3.0",
+	"description": "Sanity Studio plugin — shows installed @liiift-studio package versions in a bottom-right badge on the structure root page.",
+	"license": "MIT",
+	"author": "Liiift Studio",
+	"keywords": [
+		"sanity",
+		"sanity-plugin",
+		"sanity-studio",
+		"version",
+		"badge"
+	],
+	"main": "./dist/index.js",
+	"module": "./dist/index.mjs",
+	"exports": {
+		".": {
+			"source": "./src/index.ts",
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.js",
+			"default": "./dist/index.mjs"
+		}
+	},
+	"files": [
+		"dist",
+		"src",
+		"!src/**/*.test.*"
+	],
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch",
+		"link": "npm run build && npm link",
+		"prepublishOnly": "npm run build"
+	},
+	"peerDependencies": {
+		"@sanity/ui": ">=3",
+		"react": ">=18",
+		"sanity": ">=3"
+	},
+	"devDependencies": {
+		"@sanity/ui": "^3",
+		"@types/react": "^19",
+		"react": "^19",
+		"sanity": "^5",
+		"tsup": "^8",
+		"typescript": "^5"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Liiift-Studio/sanity-tools.git"
+	}
+}

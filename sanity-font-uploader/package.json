@@ -1,7 +1,7 @@
 {
-	"name": "@liiift-studio/sanity-font-uploader",
-	"version": "2.0.4",
-	"description": "Sanity Studio plugin — batch font uploader with format conversion, metadata extraction, CSS generation, and script variant support. Supports Sanity v3, v4, and v5.",
+	"name": "@liiift-studio/sanity-font-manager",
+	"version": "2.3.17",
+	"description": "Sanity Studio plugin — full font management suite with batch upload, format conversion, metadata extraction, CSS generation, collection/pair generation, and script variant support. Supports Sanity v3, v4, and v5.",
 	"license": "MIT",
 	"author": "Liiift Studio",
 	"keywords": [
@@ -9,12 +9,15 @@
 		"sanity-plugin",
 		"sanity-studio",
 		"font",
+		"font-management",
+		"font-manager",
 		"font-upload",
 		"typeface",
-		"font-management",
 		"woff2",
 		"font-conversion",
-		"css-generation"
+		"css-generation",
+		"collections",
+		"variable-font"
 	],
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
@@ -24,13 +27,15 @@
 			"import": "./dist/index.mjs",
 			"require": "./dist/index.js",
 			"default": "./dist/index.mjs"
-		}
+		},
+		"./package.json": "./package.json"
 	},
 	"files": [
 		"dist",
 		"src/components",
 		"src/hooks",
 		"src/utils",
+		"src/schema",
 		"src/index.js"
 	],
 	"scripts": {
@@ -39,10 +44,10 @@
 		"build": "npm run test && tsup",
 		"dev": "tsup --watch",
 		"prepublishOnly": "npm run build",
-		"link:darden": "npm link && cd ../../../sites/darden/sanity && npm link @liiift-studio/sanity-font-uploader",
-		"link:tdf": "npm link && cd ../../../sites/tdf/sanity && npm link @liiift-studio/sanity-font-uploader",
-		"link:mckl": "npm link && cd ../../../sites/mckl/cms && npm link @liiift-studio/sanity-font-uploader",
-		"link:all": "npm link && cd ../../../sites/darden/sanity && npm link @liiift-studio/sanity-font-uploader && cd ../../tdf/sanity && npm link @liiift-studio/sanity-font-uploader && cd ../../mckl/cms && npm link @liiift-studio/sanity-font-uploader"
+		"link:darden": "npm link && cd ../../../sites/darden/sanity && npm link @liiift-studio/sanity-font-manager",
+		"link:tdf": "npm link && cd ../../../sites/tdf/sanity && npm link @liiift-studio/sanity-font-manager",
+		"link:mckl": "npm link && cd ../../../sites/mckl/cms && npm link @liiift-studio/sanity-font-manager",
+		"link:all": "npm link && cd ../../../sites/darden/sanity && npm link @liiift-studio/sanity-font-manager && cd ../../tdf/sanity && npm link @liiift-studio/sanity-font-manager && cd ../../mckl/cms && npm link @liiift-studio/sanity-font-manager"
 	},
 	"dependencies": {
 		"base-64": "^1.0.0",
@@ -55,7 +60,13 @@
 		"@sanity/icons": ">=3",
 		"@sanity/ui": ">=3",
 		"react": ">=18",
-		"sanity": ">=3"
+		"sanity": ">=3",
+		"@liiift-studio/sanity-advanced-reference-array": ">=1"
+	},
+	"peerDependenciesMeta": {
+		"@liiift-studio/sanity-advanced-reference-array": {
+			"optional": true
+		}
 	},
 	"devDependencies": {
 		"@sanity/icons": "^3",

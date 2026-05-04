@@ -1,8 +1,8 @@
-// Batch font uploader with tabbed Upload / Font Utilities interface
+// Batch font uploader — drag-and-drop file list, confirm-to-upload, elapsed timer, Wake Lock, and beforeunload guard for long uploads
 
-import React, { useCallback, useState, useMemo } from 'react';
-import { Card, Grid, Box, Flex, Text, Label, Switch, Button, Tab, TabList, TabPanel, Spinner } from '@sanity/ui';
-import { ControlsIcon, UploadIcon } from '@sanity/icons';
+import React, { useCallback, useState, useMemo, useRef, useEffect } from 'react';
+import { Card, Box, Flex, Grid, Text, Label, Switch, Button, Spinner, Tooltip, Stack } from '@sanity/ui';
+import { ControlsIcon, InfoOutlineIcon, TrashIcon, UploadIcon, WarningOutlineIcon } from '@sanity/icons';
 import { useFormValue } from 'sanity';
 
 import { useSanityClient } from '../hooks/useSanityClient';
@@ -16,16 +16,33 @@ import generateCssFile from '../utils/generateCssFile';
 
 import StatusDisplay from './StatusDisplay';
 import PriceInput from './PriceInput';
-import UploadButton from './UploadButton';
+import { RegenerateSubfamiliesComponent } from './RegenerateSubfamiliesComponent';
 
-export const BatchUploadFonts = ({ elementProps: { ref } }) => {
+// Accepted font file extensions
+const ACCEPTED_EXTENSIONS = ['ttf', 'otf', 'woff', 'woff2', 'eot', 'svg'];
+
+/** Formats elapsed seconds as "Xm Ys" or "Ys". */
+const formatElapsed = (s) => {
+	const m = Math.floor(s / 60);
+	const sec = s % 60;
+	return m > 0 ? `${m}m ${sec}s` : `${sec}s`;
+};
+
+export const BatchUploadFonts = () => {
 	const [status, setStatus] = useState('ready');
 	const [ready, setReady] = useState(true);
 	const [inputPrice, setInputPrice] = useState('0');
 	const [error, setError] = useState(false);
 	const [preserveShortenedNames, setPreserveShortenedNames] = useState(true);
 	const [preserveFileNames, setPreserveFileNames] = useState(false);
-	const [tabId, setTabId] = useState('upload');
+	const [showUtilities, setShowUtilities] = useState(false);
+	const [pendingFiles, setPendingFiles] = useState([]);
+	const [isDragging, setIsDragging] = useState(false);
+	const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+	const fileInputRef = useRef(null);
+	const elapsedTimerRef = useRef(null);
+	const wakeLockRef = useRef(null);
 
 	const client = useSanityClient();
 
@@ -37,6 +54,40 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 	const subfamiliesArray = stylesObject?.subfamilies || [];
 
 	const { weightKeywordList, italicKeywordList } = useMemo(() => generateStyleKeywords(), []);
+
+	// Elapsed timer — runs while upload is in progress
+	useEffect(() => {
+		if (ready !== true) {
+			setElapsedSeconds(0);
+			elapsedTimerRef.current = setInterval(() => {
+				setElapsedSeconds(s => s + 1);
+			}, 1000);
+		} else {
+			clearInterval(elapsedTimerRef.current);
+		}
+		return () => clearInterval(elapsedTimerRef.current);
+	}, [ready]);
+
+	// Warn before navigating away while an upload is running
+	useEffect(() => {
+		if (ready !== true) {
+			const handler = (e) => { e.preventDefault(); e.returnValue = ''; };
+			window.addEventListener('beforeunload', handler);
+			return () => window.removeEventListener('beforeunload', handler);
+		}
+	}, [ready]);
+
+	// Wake Lock — prevents the screen from sleeping during long uploads
+	useEffect(() => {
+		if (ready !== true) {
+			navigator.wakeLock?.request('screen')
+				.then(lock => { wakeLockRef.current = lock; })
+				.catch(() => {});
+		} else if (wakeLockRef.current) {
+			wakeLockRef.current.release().catch(() => {});
+			wakeLockRef.current = null;
+		}
+	}, [ready]);
 
 	/** Validates that title and price are set before starting an upload. */
 	const validateInputs = (title, inputPrice) => {
@@ -54,17 +105,21 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 		return true;
 	};
 
-	/** Sorts uploaded files so TTF/OTF are processed before web formats. */
+	/** Sorts font files so TTF/OTF are processed before web formats. */
 	const sortFilesByType = (files) => {
 		if (!files) return [];
 		const typeOrder = ['ttf', 'otf', 'eot', 'svg', 'woff', 'woff2'];
 		return Array.from(files).sort((a, b) => {
-			const aIndex = typeOrder.indexOf(a.name.split('.').pop());
-			const bIndex = typeOrder.indexOf(b.name.split('.').pop());
+			const aIndex = typeOrder.indexOf(a.name.split('.').pop().toLowerCase());
+			const bIndex = typeOrder.indexOf(b.name.split('.').pop().toLowerCase());
 			if (aIndex === bIndex) return a.name.localeCompare(b.name);
 			return aIndex - bIndex;
 		});
 	};
+
+	/** Returns only files with accepted font extensions. */
+	const filterFontFiles = (files) =>
+		Array.from(files).filter(f => ACCEPTED_EXTENSIONS.includes(f.name.split('.').pop().toLowerCase()));
 
 	/** Sets final status after upload completes, reporting any failed files. */
 	const handleCompletionStatus = (failedFiles, setError, setStatus) => {
@@ -82,8 +137,32 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 		}
 	};
 
-	/** Handles the font file upload event — processes, uploads, and updates the typeface document. */
-	const handleUpload = useCallback(async (event) => {
+	/** Adds files from the file picker to the pending list. */
+	const handleFileSelect = useCallback((e) => {
+		const files = filterFontFiles(e.target.files);
+		if (files.length > 0) setPendingFiles(prev => [...prev, ...files]);
+		e.target.value = '';
+	}, []);
+
+	/** Removes a single file from the pending list by object reference. */
+	const handleRemoveFile = useCallback((file) => {
+		setPendingFiles(prev => prev.filter(f => f !== file));
+	}, []);
+
+	const handleDragEnter = useCallback((e) => { e.preventDefault(); setIsDragging(true); }, []);
+	const handleDragOver = useCallback((e) => { e.preventDefault(); }, []);
+	const handleDragLeave = useCallback((e) => { e.preventDefault(); setIsDragging(false); }, []);
+
+	/** Adds dropped font files to the pending list. */
+	const handleDrop = useCallback((e) => {
+		e.preventDefault();
+		setIsDragging(false);
+		const files = filterFontFiles(e.dataTransfer.files);
+		if (files.length > 0) setPendingFiles(prev => [...prev, ...files]);
+	}, []);
+
+	/** Processes and uploads the confirmed pending file list. */
+	const handleConfirmUpload = useCallback(async () => {
 		try {
 			setStatus('Uploading font files...');
 			setReady('upload');
@@ -94,8 +173,8 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 				return false;
 			}
 
-			const files = event.target.files;
-			const sortedFiles = sortFilesByType(files);
+			const sortedFiles = sortFilesByType(pendingFiles);
+			setPendingFiles([]);
 
 			const { fontsObjects, subfamilies, uniqueSubfamilies, newPreferredStyle, failedFiles } =
 				await processFontFiles(
@@ -142,7 +221,7 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 
 		setReady(true);
 		setError(false);
-	}, [stylesObject, title, slug, doc_id, inputPrice, weightKeywordList, italicKeywordList, client, preferredStyleRef, subfamiliesArray, preserveShortenedNames, preserveFileNames]);
+	}, [pendingFiles, stylesObject, title, slug, doc_id, inputPrice, weightKeywordList, italicKeywordList, client, preferredStyleRef, subfamiliesArray, preserveShortenedNames, preserveFileNames]);
 
 	/** Renames all existing font documents in this typeface by re-reading their TTF metadata. */
 	const handleRenameExistingFonts = useCallback(async () => {
@@ -266,139 +345,292 @@ export const BatchUploadFonts = ({ elementProps: { ref } }) => {
 		setStatus('ready');
 	};
 
+	/** Renders an info-icon tooltip trigger wrapping a label. */
+	const renderTooltipLabel = (label, description) => (
+		<Tooltip
+			content={<Box padding={2} style={{ maxWidth: 260 }}><Text size={1} style={{ lineHeight: 1.6 }}>{description}</Text></Box>}
+			placement="top"
+			portal
+		>
+			<Flex align="center" gap={1} style={{ cursor: 'default' }}>
+				<Label>{label}</Label>
+				<InfoOutlineIcon style={{ opacity: 0.5, display: 'block' }} />
+			</Flex>
+		</Tooltip>
+	);
+
+	/** Renders the in-progress state: spinner, live status, elapsed time, and do-not-close warning. */
+	const renderProcessing = () => (
+		<Stack space={3} paddingY={2}>
+			<Flex align="center" gap={3}>
+				<Spinner />
+				<Text size={1} muted>{status}</Text>
+			</Flex>
+			<Card tone="caution" border radius={2} padding={2}>
+				<Flex align="center" justify="space-between" gap={2}>
+					<Flex align="center" gap={2}>
+						<WarningOutlineIcon style={{ flexShrink: 0 }} />
+						<Text size={1} weight="semibold">Do not close or reload this tab</Text>
+					</Flex>
+					<Text size={1} muted style={{ flexShrink: 0 }}>{formatElapsed(elapsedSeconds)}</Text>
+				</Flex>
+			</Card>
+		</Stack>
+	);
+
+	/** Renders the drag-and-drop zone. */
+	const renderDropZone = () => (
+		<Box
+			onDragEnter={handleDragEnter}
+			onDragOver={handleDragOver}
+			onDragLeave={handleDragLeave}
+			onDrop={handleDrop}
+			style={{
+				border: `2px dashed ${isDragging ? 'var(--card-focus-ring-color)' : 'var(--card-border-color)'}`,
+				borderRadius: 4,
+				padding: '28px 16px',
+				textAlign: 'center',
+				background: isDragging ? 'rgba(100, 153, 255, 0.06)' : 'transparent',
+				transition: 'border-color 0.12s, background 0.12s',
+				cursor: 'default',
+			}}
+		>
+			<input
+				ref={fileInputRef}
+				type="file"
+				multiple
+				hidden
+				accept=".ttf,.otf,.woff,.woff2,.eot,.svg"
+				onChange={handleFileSelect}
+			/>
+			<Stack space={3}>
+				<Text size={1} muted>
+					{isDragging ? 'Release to add files' : 'Drop font files here'}
+				</Text>
+				<Flex justify="center">
+					<Button
+						mode="ghost"
+						tone="primary"
+						fontSize={1}
+						padding={2}
+						text="Browse files"
+						onClick={() => fileInputRef.current?.click()}
+					/>
+				</Flex>
+			</Stack>
+		</Box>
+	);
+
+	/** Renders the sorted pending file list with a scrollable container, file count, and upload action. */
+	const renderFileList = () => {
+		const sorted = sortFilesByType(pendingFiles);
+		return (
+			<Stack space={2}>
+				{/* Header: file count + clear */}
+				<Flex align="center" justify="space-between">
+					<Text size={1} muted>
+						{pendingFiles.length} file{pendingFiles.length === 1 ? '' : 's'} selected
+					</Text>
+					<Button
+						mode="bleed"
+						tone="default"
+						fontSize={1}
+						padding={1}
+						text="Clear all"
+						onClick={() => setPendingFiles([])}
+					/>
+				</Flex>
+
+				{/* Scrollable file list */}
+				<Box style={{ maxHeight: '260px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+					{sorted.map((file, i) => {
+						const ext = file.name.split('.').pop().toUpperCase();
+						return (
+							<Card key={`${file.name}-${file.size}-${i}`} border radius={1} paddingX={2} paddingY={2}>
+								<Flex justify="space-between" align="center" gap={2}>
+									<Flex gap={3} align="center" style={{ flex: 1, minWidth: 0 }}>
+										<Text
+											size={0}
+											style={{ fontFamily: 'monospace', minWidth: '2.5rem', flexShrink: 0 }}
+										>
+											{ext}
+										</Text>
+										<Box style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+											<Text size={1}>{file.name}</Text>
+										</Box>
+									</Flex>
+									<Button
+										mode="bleed"
+										tone="critical"
+										icon={TrashIcon}
+										padding={2}
+										onClick={() => handleRemoveFile(file)}
+									/>
+								</Flex>
+							</Card>
+						);
+					})}
+				</Box>
+
+				{/* Add more files zone */}
+				<Box
+					onDragEnter={handleDragEnter}
+					onDragOver={handleDragOver}
+					onDragLeave={handleDragLeave}
+					onDrop={handleDrop}
+					style={{
+						border: `2px dashed ${isDragging ? 'var(--card-focus-ring-color)' : 'var(--card-border-color)'}`,
+						borderRadius: 4,
+						padding: '10px 16px',
+						textAlign: 'center',
+						background: isDragging ? 'rgba(100, 153, 255, 0.06)' : 'transparent',
+						transition: 'border-color 0.12s, background 0.12s',
+					}}
+				>
+					<input
+						ref={fileInputRef}
+						type="file"
+						multiple
+						hidden
+						accept=".ttf,.otf,.woff,.woff2,.eot,.svg"
+						onChange={handleFileSelect}
+					/>
+					<Flex align="center" justify="center" gap={2}>
+						<Text size={1} muted>{isDragging ? 'Release to add' : 'Drop more files or'}</Text>
+						<Button
+							mode="bleed"
+							tone="primary"
+							fontSize={1}
+							padding={1}
+							text="browse"
+							onClick={() => fileInputRef.current?.click()}
+						/>
+					</Flex>
+				</Box>
+
+				{/* Upload confirm */}
+				<Button
+					mode="ghost"
+					tone="primary"
+					icon={UploadIcon}
+					text={`Upload ${pendingFiles.length} Font${pendingFiles.length === 1 ? '' : 's'}`}
+					style={{ width: '100%' }}
+					onClick={handleConfirmUpload}
+				/>
+			</Stack>
+		);
+	};
+
 	return (
 		<>
 			{title && title !== '' && slug && slug !== '' &&
 				<>
-					<TabList space={2} paddingBottom={3}>
-						<Tab
-							aria-controls="upload-panel"
-							icon={UploadIcon}
-							id="upload-tab"
-							label="Upload Fonts"
-							onClick={() => setTabId('upload')}
-							selected={tabId === 'upload'}
-							space={2}
-						/>
-						<Tab
-							aria-controls="utilities-panel"
-							icon={ControlsIcon}
-							id="utilities-tab"
-							label="Font Utilities"
-							onClick={() => setTabId('utilities')}
-							selected={tabId === 'utilities'}
-							space={2}
-						/>
-					</TabList>
+					<StatusDisplay
+						status={status}
+						error={error}
+						action={
+							<Button
+								mode={showUtilities ? 'default' : 'ghost'}
+								tone="primary"
+								icon={ControlsIcon}
+								text="Utilities"
+								fontSize={1}
+								padding={2}
+								onClick={() => setShowUtilities(v => !v)}
+							/>
+						}
+					/>
+
 					<Card border padding={2} shadow={1} radius={2}>
-						<StatusDisplay status={status} error={error} />
+						{showUtilities ? (
+							<Stack space={4} marginTop={2}>
 
-						<TabPanel aria-labelledby="upload-tab" hidden={tabId !== 'upload'} id="upload-panel">
-							{ready ?
-								<>
-									<Grid marginTop={1} marginBottom={1} columns={[1]}>
-										<Flex direction="column" gap={3}>
-											<Flex align="center">
-												<Switch
-													checked={preserveShortenedNames}
-													onChange={(e) => setPreserveShortenedNames(e.target.checked)}
-												/>
-												<Box marginLeft={2}>
-													<Label>Preserve shortened names</Label>
-												</Box>
-											</Flex>
-											<Text size={1} muted>
-												When enabled, abbreviations in font names are kept as-is (e.g. "XNarrow" stays "XNarrow", "Bd" stays "Bd").
-											</Text>
-											<Flex align="center">
-												<Switch
-													checked={preserveFileNames}
-													onChange={(e) => setPreserveFileNames(e.target.checked)}
-												/>
-												<Box marginLeft={2}>
-													<Label>Preserve file names</Label>
-												</Box>
-											</Flex>
-											<Text size={1} muted>
-												When enabled, the original filename capitalisation is used for asset naming instead of the normalised font title.
-											</Text>
-										</Flex>
-									</Grid>
-									<Grid columns={[1]} gap={3} paddingTop={3}>
-										<PriceInput inputPrice={inputPrice} handleInputChange={handleInputChange} />
-									</Grid>
-									<Grid columns={[1]} gap={3}>
-										<UploadButton ref={ref} handleUpload={handleUpload} />
-									</Grid>
-								</>
-								:
-								<Flex align="center" height="fill" justify="center" direction="column" gap={3}>
-									<Spinner center />
-									<Text muted size={1} align="center">Processing...</Text>
-								</Flex>
-							}
-						</TabPanel>
+								{/* Regenerate Subfamilies */}
+								<Stack space={2}>
+									<Text size={1} weight="semibold" style={{ lineHeight: 1.6 }}>Regenerate Subfamilies</Text>
+									<RegenerateSubfamiliesComponent />
+								</Stack>
 
-						<TabPanel aria-labelledby="utilities-tab" hidden={tabId !== 'utilities'} id="utilities-panel">
-							<Flex marginTop={2} marginBottom={4} direction="column" gap={2}>
-								<Text size={2} weight="bold">Rename Fonts</Text>
-								<Text size={1} muted>
-									Renames all fonts in the typeface fonts list based on their existing TTF/OTF file metadata.
-								</Text>
-							</Flex>
-							<Grid marginTop={1} marginBottom={3} columns={[1]}>
-								<Flex direction="column" gap={3}>
-									<Flex align="center">
+								{/* Rename Fonts */}
+								<Stack space={3}>
+									<Text size={1} weight="semibold" style={{ lineHeight: 1.6 }}>Rename Fonts (name table, Full Name)</Text>
+									<Flex align="center" gap={2}>
 										<Switch
 											checked={preserveShortenedNames}
 											onChange={(e) => setPreserveShortenedNames(e.target.checked)}
 										/>
-										<Box marginLeft={2}>
-											<Label>Preserve shortened names</Label>
-										</Box>
+										{renderTooltipLabel(
+											'Preserve shortened names',
+											'Abbreviations in font names are kept as-is (e.g. "XNarrow" stays "XNarrow", "Bd" stays "Bd").'
+										)}
 									</Flex>
-									<Text size={1} muted>
-										When enabled, abbreviations in font names are kept as-is.
-									</Text>
-								</Flex>
-							</Grid>
-							{ready === 'rename'
-								? <Flex align="center" height="fill" paddingTop={2} paddingBottom={2} justify="center" gap={3}>
-									<Spinner center />
-									<Text muted size={1} align="center">Processing...</Text>
-								</Flex>
-								: <Button mode="ghost" width="fill" tone="primary" text="Rename Existing Fonts" onClick={handleRenameExistingFonts} disabled={ready !== true} />
-							}
+									{ready === 'rename'
+										? renderProcessing()
+										: <Button mode="ghost" tone="primary" text="Rename Existing Fonts" style={{ width: '100%' }} onClick={handleRenameExistingFonts} disabled={ready !== true} />
+									}
+								</Stack>
 
-							<Flex marginTop={6} marginBottom={4} direction="column" gap={2}>
-								<Text size={2} weight="bold">Update Font Prices</Text>
-								<Text size={1} muted>
-									Updates the price of all fonts in the typeface fonts list using the Style Price input below.
-								</Text>
-							</Flex>
-							<PriceInput inputPrice={inputPrice} handleInputChange={handleInputChange} />
-							{ready === 'price'
-								? <Flex align="center" height="fill" paddingTop={2} paddingBottom={2} justify="center" gap={3}>
-									<Spinner center />
-									<Text muted size={1} align="center">Processing...</Text>
-								</Flex>
-								: <Button mode="ghost" tone="primary" width="fill" text="Update All Font Prices" onClick={handleChangeFontPrice} disabled={ready !== true} />
-							}
+								{/* Update Font Prices */}
+								<Stack space={3}>
+									<Text size={1} weight="semibold" style={{ lineHeight: 1.6 }}>Update Font Prices</Text>
+									{ready === 'price'
+										? renderProcessing()
+										: <Stack space={2}>
+											<PriceInput inputPrice={inputPrice} handleInputChange={handleInputChange} />
+											<Button mode="ghost" tone="primary" text="Update All Font Prices" style={{ width: '100%' }} onClick={handleChangeFontPrice} disabled={ready !== true} />
+										</Stack>
+									}
+								</Stack>
 
-							<Flex marginTop={6} marginBottom={3} direction="column" gap={2}>
-								<Text size={2} weight="bold">Regenerate CSS</Text>
-								<Text size={1} muted>
-									Rebuilds the CSS @font-face files for all fonts in the typeface fonts list.
-								</Text>
-							</Flex>
-							{ready === 'css'
-								? <Flex align="center" height="fill" paddingTop={2} paddingBottom={2} justify="center" gap={3}>
-									<Spinner center />
-									<Text muted size={1} align="center">Processing...</Text>
-								</Flex>
-								: <Button mode="ghost" tone="primary" width="fill" text="Regenerate CSS Files" onClick={handleRegenerateCssFiles} disabled={ready !== true} />
-							}
-						</TabPanel>
+								{/* Regenerate CSS */}
+								<Stack space={3}>
+									<Text size={1} weight="semibold" style={{ lineHeight: 1.6 }}>Regenerate CSS</Text>
+									<Text size={1} muted style={{ lineHeight: 1.6 }}>Rebuilds the CSS @font-face files for all fonts in the typeface fonts list.</Text>
+									{ready === 'css'
+										? renderProcessing()
+										: <Button mode="ghost" tone="primary" text="Regenerate CSS Files" style={{ width: '100%' }} onClick={handleRegenerateCssFiles} disabled={ready !== true} />
+									}
+								</Stack>
+
+							</Stack>
+						) : (
+							ready
+								? <>
+									<Grid columns={[2]} gap={4} marginTop={1} marginBottom={1}>
+										{/* Left: price */}
+										<Box>
+											<PriceInput inputPrice={inputPrice} handleInputChange={handleInputChange} />
+										</Box>
+										{/* Right: toggles */}
+										<Stack space={3}>
+											<Flex align="center" gap={2}>
+												<Switch
+													checked={preserveShortenedNames}
+													onChange={(e) => setPreserveShortenedNames(e.target.checked)}
+												/>
+												{renderTooltipLabel(
+													'Preserve shortened names',
+													'Abbreviations in font names are kept as-is (e.g. "XNarrow" stays "XNarrow", "Bd" stays "Bd").'
+												)}
+											</Flex>
+											<Flex align="center" gap={2}>
+												<Switch
+													checked={preserveFileNames}
+													onChange={(e) => setPreserveFileNames(e.target.checked)}
+												/>
+												{renderTooltipLabel(
+													'Preserve file names',
+													'Original filename capitalisation is used for asset naming instead of the normalised font title.'
+												)}
+											</Flex>
+										</Stack>
+									</Grid>
+									<Box marginTop={3}>
+										{pendingFiles.length === 0 ? renderDropZone() : renderFileList()}
+									</Box>
+								</>
+								: renderProcessing()
+						)}
 					</Card>
 				</>
 			}
