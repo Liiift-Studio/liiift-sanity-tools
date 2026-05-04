@@ -6,6 +6,10 @@ export type SeoValue = {
 	keywords?: string
 	image?: unknown
 	description?: string
+	/** Optional canonical URL override — only present when createSeoField({ canonical: true }) */
+	canonical?: string
+	/** Optional noIndex flag — only present when createSeoField({ noIndex: true }) */
+	noIndex?: boolean
 	/** Darden-only: link to Adobe Fonts page */
 	adobeLink?: string
 	/** Darden-only: link to Font Stand page */
