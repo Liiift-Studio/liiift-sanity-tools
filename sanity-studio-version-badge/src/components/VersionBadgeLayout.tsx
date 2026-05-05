@@ -2,6 +2,7 @@
 
 import React, {useState, useEffect} from 'react'
 import {Badge, Box, Button, Card, Flex, Stack, Text, Tooltip} from '@sanity/ui'
+import {CloseIcon} from '@sanity/icons'
 
 const COOKIE_NAME = 'liiift_pkg_versions'
 /** Duration window for showing the badge on revisit (7 days in ms) */
@@ -255,7 +256,7 @@ export const VersionBadgeLayout = ({
 						<Button
 							mode="bleed"
 							padding={1}
-							text="×"
+							icon={CloseIcon}
 							onClick={() => setDismissed(true)}
 							style={{flexShrink: 0, marginTop: -2}}
 						/>
