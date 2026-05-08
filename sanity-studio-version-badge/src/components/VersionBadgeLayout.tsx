@@ -164,12 +164,15 @@ export const VersionBadgeLayout = ({
 	const [descriptions, setDescriptions] = useState<Record<string, string>>({})
 	const [dismissed, setDismissed] = useState(false)
 
-	// Fetch npm publish dates and descriptions for all packages
+	// Defer npm registry fetches until after studio load to avoid slowing initial render
 	useEffect(() => {
-		fetchNpmData(packages, packagesToCheck).then(({recentPackages, descriptions}) => {
-			setRecentPackages(recentPackages)
-			setDescriptions(descriptions)
-		})
+		const timer = setTimeout(() => {
+			fetchNpmData(packages, packagesToCheck).then(({recentPackages, descriptions}) => {
+				setRecentPackages(recentPackages)
+				setDescriptions(descriptions)
+			})
+		}, 4000)
+		return () => clearTimeout(timer)
 	}, [])
 
 	useEffect(() => {
