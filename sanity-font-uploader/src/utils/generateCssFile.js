@@ -84,10 +84,18 @@ const FAMILY_CLASS_MAP = {
 	8: 'sans-serif',
 };
 
-/** Detects font category from the OS/2 sFamilyClass field; returns a key into FALLBACK_STACKS */
-function detectFontCategory(font) {
+// Darden Studio fonts have sFamilyClass: 0 (No Classification) in their OS/2 table,
+// so name-based matching is used as the primary signal.
+const SERIF_NAMES  = /jubilat|corundum|dapifer|birra|daith/i;
+const SANS_NAMES   = /halyard|gamay|omnes|kit/i;
+
+/** Detects font category from the font name first, then OS/2 sFamilyClass as fallback */
+function detectFontCategory(font, fontName) {
+	if (fontName && SERIF_NAMES.test(fontName)) return 'serif';
+	if (fontName && SANS_NAMES.test(fontName)) return 'sans-serif';
 	try {
-		const familyClass = font._tables?.['OS/2']?.sFamilyClass ?? 0;
+		// fontkit v2: font['OS/2'] exposes the parsed OS/2 table directly
+		const familyClass = font['OS/2']?.sFamilyClass ?? 0;
 		const highByte = (familyClass >> 8) & 0xFF;
 		return FAMILY_CLASS_MAP[highByte] ?? 'default';
 	} catch {
@@ -96,11 +104,11 @@ function detectFontCategory(font) {
 }
 
 /** Extracts metric override percentages and detects the category fallback stack from a font ArrayBuffer */
-function calcFallbackData(arrayBuffer) {
+function calcFallbackData(arrayBuffer, fontName) {
 	try {
 		let font = fontkit.create(Buffer.from(arrayBuffer));
 		let upm = font.unitsPerEm;
-		let category = detectFontCategory(font);
+		let category = detectFontCategory(font, fontName);
 		return {
 			fallbackSrc: FALLBACK_STACKS[category],
 			ascentOverride: `${(font.ascent / upm * 100).toFixed(2)}%`,
@@ -134,7 +142,7 @@ export default async function generateCssFile({
 		let arrayBuffer = await woff2File.arrayBuffer();
 		let b64 = _arrayBufferToBase64(arrayBuffer);
 		let fontkitFont = fontkit.create(Buffer.from(arrayBuffer));
-		let { fallbackSrc, ascentOverride, descentOverride, lineGapOverride } = calcFallbackData(arrayBuffer);
+		let { fallbackSrc, ascentOverride, descentOverride, lineGapOverride } = calcFallbackData(arrayBuffer, fontName);
 
 		let cssString;
 		if (variableFont) {
