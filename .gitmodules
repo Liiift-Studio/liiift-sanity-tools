@@ -40,3 +40,24 @@
 [submodule "sanity-type-foundry-utilities"]
 	path = sanity-type-foundry-utilities
 	url = https://github.com/Liiift-Studio/sanity-type-foundry-utilities.git
+[submodule "sanity-foundry-constants"]
+	path = sanity-foundry-constants
+	url = https://github.com/Liiift-Studio/sanity-foundry-constants.git
+[submodule "sanity-key-value-input"]
+	path = sanity-key-value-input
+	url = https://github.com/Liiift-Studio/sanity-key-value-input.git
+[submodule "sanity-nested-object-selector"]
+	path = sanity-nested-object-selector
+	url = https://github.com/Liiift-Studio/sanity-nested-object-selector.git
+[submodule "sanity-studio-version-badge"]
+	path = sanity-studio-version-badge
+	url = https://github.com/Liiift-Studio/sanity-studio-version-badge.git
+[submodule "sanity-typeface-fields"]
+	path = sanity-typeface-fields
+	url = https://github.com/Liiift-Studio/sanity-typeface-fields.git
+[submodule "sanity-typeface-seo"]
+	path = sanity-typeface-seo
+	url = https://github.com/Liiift-Studio/sanity-typeface-seo.git
+[submodule "sanity-font-uploader"]
+	path = sanity-font-uploader
+	url = https://github.com/Liiift-Studio/sanity-font-manager.git
