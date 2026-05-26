@@ -16,7 +16,7 @@
       "react-dom": "^18.0.0",
       "react-is": "^18.0.0",
       "sanity": "^3.0.0",
-      "styled-components": "^6.1.15",
+      "styled-components": "^6.4.2",
       "date-fns": "^2.30.0"
    },
    "devDependencies": {
