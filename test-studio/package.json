@@ -9,13 +9,13 @@
       "start": "sanity start"
    },
    "dependencies": {
-      "@sanity/ui": "^2.0.0",
-      "@sanity/vision": "^3.0.0",
+      "@sanity/ui": "^3.2.0",
+      "@sanity/vision": "^5.27.0",
       "@sanity/icons": "^2.0.0",
       "react": "^18.0.0",
       "react-dom": "^18.0.0",
       "react-is": "^18.0.0",
-      "sanity": "^3.0.0",
+      "sanity": "^5.27.0",
       "styled-components": "^6.1.15",
       "date-fns": "^2.30.0"
    },
