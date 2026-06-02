@@ -1,19 +1,19 @@
 // Test schemas for all Liiift Sanity Tools
 import { referenceTestSchema } from './reference-test';
-import { fontTestSchema } from './font-test';
 import { assetTestSchema } from './asset-test';
 import { bulkTestSchema } from './bulk-test';
+import { fontTestSchema } from './font-test';
+import { typefaceTestSchema, collectionSchema, pairSchema } from './typeface-test';
 
 export const schemaTypes = [
-	// Reference testing schema (for Advanced Reference Array)
-	referenceTestSchema,
-
-	// Font testing schema (for Font Management tools)
+	// Core foundry types (font manager targets)
+	typefaceTestSchema,
 	fontTestSchema,
+	collectionSchema,
+	pairSchema,
 
-	// Asset testing schema (for Asset Management tools)
+	// General test types
+	referenceTestSchema,
 	assetTestSchema,
-
-	// Bulk operations testing schema (for Bulk Operations)
 	bulkTestSchema,
 ];

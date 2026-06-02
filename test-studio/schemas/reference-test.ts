@@ -21,7 +21,7 @@ export const referenceTestSchema = {
 			of: [
 				{
 					type: 'reference',
-					to: [{ type: 'referenceTest' }, { type: 'fontTest' }, { type: 'assetTest' }, { type: 'bulkTest' }],
+					to: [{ type: 'referenceTest' }, { type: 'font' }, { type: 'assetTest' }, { type: 'bulkTest' }],
 				},
 			],
 		},
@@ -29,7 +29,7 @@ export const referenceTestSchema = {
 			name: 'singleReference',
 			title: 'Single Reference',
 			type: 'reference',
-			to: [{ type: 'referenceTest' }, { type: 'fontTest' }],
+			to: [{ type: 'referenceTest' }, { type: 'font' }],
 		},
 		{
 			name: 'category',

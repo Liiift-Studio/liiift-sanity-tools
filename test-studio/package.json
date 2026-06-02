@@ -1,38 +1,35 @@
 {
-   "name": "liiift-sanity-tools-test-studio",
-   "version": "1.0.0",
-   "description": "Integrated test studio for all 14 Liiift Sanity Tools",
-   "scripts": {
-      "dev": "sanity dev",
-      "build": "sanity build",
-      "deploy": "sanity deploy",
-      "start": "sanity start"
-   },
-   "dependencies": {
-      "@sanity/ui": "^2.0.0",
-      "@sanity/vision": "^3.0.0",
-      "@sanity/icons": "^2.0.0",
-      "react": "^18.0.0",
-      "react-dom": "^18.0.0",
-      "react-is": "^18.0.0",
-      "sanity": "^3.0.0",
-      "styled-components": "^6.1.15",
-      "date-fns": "^2.30.0"
-   },
-   "devDependencies": {
-      "@types/node": "^20.0.0",
-      "@types/react": "^18.2.0",
-      "@types/react-dom": "^18.2.0",
-      "typescript": "^5.0.0"
-   },
-   "keywords": [
-      "sanity",
-      "studio",
-      "testing",
-      "tools",
-      "plugins",
-      "development"
-   ],
-   "author": "Liiift Studio",
-   "license": "MIT"
+	"name": "liiift-sanity-tools-test-studio",
+	"private": true,
+	"version": "1.0.0",
+	"description": "Integration test studio for all sanity-tools packages",
+	"scripts": {
+		"dev": "sanity dev",
+		"build": "sanity build",
+		"start": "sanity start"
+	},
+	"dependencies": {
+		"@devtools-ds/object-inspector": "^1.2.1",
+		"base-64": "^1.0.0",
+		"@sanity/icons": "^3",
+		"@sanity/ui": "^2 || ^3",
+		"@sanity/vision": "^3",
+		"react": "^18",
+		"react-dom": "^18",
+		"react-is": "^18",
+		"sanity": "^3",
+		"date-fns": "^2.30.0",
+		"fontkit": "^2",
+		"groq": "^3",
+		"lib-font": "^3.0.1",
+		"nanoid": "^5",
+		"pako": "^2.1.0",
+		"slugify": "^1.6.6",
+		"styled-components": "^6"
+	},
+	"devDependencies": {
+		"@types/node": "^20",
+		"@types/react": "^18",
+		"typescript": "^5"
+	}
 }

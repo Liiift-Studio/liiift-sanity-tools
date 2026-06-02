@@ -1,26 +1,25 @@
 {
 	"compilerOptions": {
 		"target": "ES2017",
-		"lib": ["dom", "dom.iterable", "es6"],
+		"lib": ["dom", "dom.iterable", "es2017"],
 		"allowJs": true,
 		"skipLibCheck": true,
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
-		"strict": true,
+		"strict": false,
 		"forceConsistentCasingInFileNames": true,
 		"module": "esnext",
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"noEmit": true,
 		"jsx": "react-jsx",
-		"incremental": true,
-		"baseUrl": ".",
-		"paths": {
-			"@/*": ["./src/*"],
-			"@schemas/*": ["./schemas/*"]
-		}
+		"incremental": true
 	},
-	"include": ["**/*.ts", "**/*.tsx"],
+	"include": [
+		"sanity.config.ts",
+		"sanity.cli.ts",
+		"schemas/**/*.ts"
+	],
 	"exclude": ["node_modules", "dist"]
 }
